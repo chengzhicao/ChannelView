@@ -1,9 +1,9 @@
-#介绍
+# 介绍
 >一款频道选择器，可以进行频道的拖动、排序、增删，动态的改变高度，精简而又流畅
 
 ![](https://upload-images.jianshu.io/upload_images/6753190-9ef8bb620590ffad.gif?imageMogr2/auto-orient/strip)
 
-#方法
+# 方法
 
 |名称|描述
 |---|---|
@@ -17,14 +17,14 @@
 |getMyChannel()| 获取我的频道
 |setOnChannelItemClickListener(OnChannelListener onChannelListener)| 设置频道监听
 
-#OnChannelListener接口
+# OnChannelListener接口
 
 |名称|描述
 |---|---|
 |channelItemClick(int itemId, String channel)| 频道点击回调
 |channelFinish(List<String> channels)| 频道编辑完成回调
 
-#属性
+# 属性
 
 |名称|描述
 |---|---|
@@ -34,7 +34,7 @@
 |channelVerticalSpacing| 频道之间竖直方向的间隔距离
 |channelHorizontalSpacing| 频道之间水平方向的间隔距离
 
-#示例
+# 示例
 
 在布局文件中：
 ```
@@ -103,3 +103,7 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
     }
 }
 ```
+
+# 项目详细解读
+
+https://www.jianshu.com/p/53af72e8a4ba
