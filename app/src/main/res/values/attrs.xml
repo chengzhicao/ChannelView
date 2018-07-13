@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ChannelView">
+        <attr name="channelSpacing" format="dimension" />
+        <attr name="channelHeight" format="dimension" />
+        <attr name="channelColumn" format="integer" />
+        <attr name="channelPadding" format="dimension" />
+        <attr name="channelVerticalSpacing" format="dimension" />
+        <attr name="channelHorizontalSpacing" format="dimension" />
+    </declare-styleable>
+</resources>
