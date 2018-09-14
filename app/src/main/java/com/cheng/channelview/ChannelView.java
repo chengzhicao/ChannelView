@@ -390,7 +390,6 @@ public class ChannelView extends ScrollView {
                     if (j == 0) {
                         tipEdit = view.findViewById(R.id.tv_tip_edit);
                         tipEdit.setVisibility(VISIBLE);
-                        tipEdit.setOnClickListener(this);
                         tipFinish = view.findViewById(R.id.tv_tip_finish);
                         tipFinish.setVisibility(INVISIBLE);
                         tipFinish.setOnClickListener(this);
