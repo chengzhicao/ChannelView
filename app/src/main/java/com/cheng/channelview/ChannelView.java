@@ -260,11 +260,6 @@ public class ChannelView extends ScrollView {
         private AnimatorSet animatorSet = new AnimatorSet();
 
         /**
-         * 是否重新测量
-         */
-        private boolean isAgainMeasure = true;
-
-        /**
          * 所有频道标题组
          */
         private List<View> channelTitleGroups = new ArrayList<>();
@@ -311,35 +306,33 @@ public class ChannelView extends ScrollView {
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            if (isAgainMeasure) {
-                int width = MeasureSpec.getSize(widthMeasureSpec);//ChannelLayout的宽
-                //不是通过动画改变ChannelLayout的高度
-                if (!isAnimateChangeHeight) {
-                    int height = 0;
-                    int allChannelTitleHeight = 0;
-                    for (int i = 0; i < getChildCount(); i++) {
-                        View childAt = getChildAt(i);
-                        if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.TITLE) {
-                            //计算标题View的宽高
-                            childAt.measure(MeasureSpec.makeMeasureSpec(width - channelPadding * 2, MeasureSpec.EXACTLY), heightMeasureSpec);
-                            allChannelTitleHeight += childAt.getMeasuredHeight();
-                        } else if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.CHANNEL) {
-                            //计算每个频道的宽高
-                            channelWidth = (width - verticalSpacing * (channelColumn * 2 - 2) - channelPadding * 2) / channelColumn;
-                            childAt.measure(MeasureSpec.makeMeasureSpec(channelWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(channelHeight, MeasureSpec.EXACTLY));
-                        }
+            int width = MeasureSpec.getSize(widthMeasureSpec);//ChannelLayout的宽
+            //不是通过动画改变ChannelLayout的高度
+            if (!isAnimateChangeHeight) {
+                int height = 0;
+                int allChannelTitleHeight = 0;
+                for (int i = 0; i < getChildCount(); i++) {
+                    View childAt = getChildAt(i);
+                    if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.TITLE) {
+                        //计算标题View的宽高
+                        childAt.measure(MeasureSpec.makeMeasureSpec(width - channelPadding * 2, MeasureSpec.EXACTLY), heightMeasureSpec);
+                        allChannelTitleHeight += childAt.getMeasuredHeight();
+                    } else if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.CHANNEL) {
+                        //计算每个频道的宽高
+                        channelWidth = (width - verticalSpacing * (channelColumn * 2 - 2) - channelPadding * 2) / channelColumn;
+                        childAt.measure(MeasureSpec.makeMeasureSpec(channelWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(channelHeight, MeasureSpec.EXACTLY));
                     }
-                    for (int groupChannelColumn : groupChannelColumns) {
-                        if (groupChannelColumn > 0) {
-                            height += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * horizontalSpacing;
-                        }
-                    }
-                    allChannelGroupsHeight = height;
-                    height += channelPadding * 2 + allChannelTitleHeight;//ChannelLayout的高
-                    setMeasuredDimension(width, height);
-                } else {//通过动画改变ChannelLayout的高度
-                    setMeasuredDimension(width, animateHeight);
                 }
+                for (int groupChannelColumn : groupChannelColumns) {
+                    if (groupChannelColumn > 0) {
+                        height += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * horizontalSpacing;
+                    }
+                }
+                allChannelGroupsHeight = height;
+                height += channelPadding * 2 + allChannelTitleHeight;//ChannelLayout的高
+                setMeasuredDimension(width, height);
+            } else {//通过动画改变ChannelLayout的高度
+                setMeasuredDimension(width, animateHeight);
             }
         }
 
@@ -812,7 +805,6 @@ public class ChannelView extends ScrollView {
                         }
                         animatorSet.playTogether(objectAnimators);
                         animatorSet.setDuration(DURATION_TIME);
-                        isAgainMeasure = false;
                         animatorSet.start();
                         vTag.coordinate = tempPoint;
                         myChannels.remove(v);
@@ -829,7 +821,6 @@ public class ChannelView extends ScrollView {
          * @param v
          */
         private void channelDragUp(View v) {
-            isAgainMeasure = true;
             isChannelLongClick = false;
             ChannelAttr vTag = (ChannelAttr) v.getTag();
             v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);

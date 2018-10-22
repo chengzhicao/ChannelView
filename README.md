@@ -104,6 +104,10 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 }
 ```
 
+
+# v1.0.1更新说明
+>修复拖拽时出现的崩溃bug
+
 # 项目详细解读
 
 https://www.jianshu.com/p/53af72e8a4ba
