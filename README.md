@@ -106,7 +106,10 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 
 
 # v1.0.1更新说明
->修复拖拽时出现的崩溃bug
+> 修复拖拽时出现的崩溃bug
+
+# v1.0.2
+> 修复删除我的频道后该频道仍显示删除icon的问题
 
 # 项目详细解读
 
