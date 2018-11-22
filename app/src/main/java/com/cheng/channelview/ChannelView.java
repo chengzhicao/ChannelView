@@ -589,30 +589,9 @@ public class ChannelView extends ScrollView {
                 tag.coordinate = new PointF(finalMyChannelTag.coordinate.x + channelWidth + verticalSpacing * 2, finalMyChannelTag.coordinate.y);
                 animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             }
-            animate.setListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    if (channelClickType == DELETE) {
-                        v.setBackgroundResource(channelSelectedBackground);
-                        animate.setListener(null);
-                    }
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-
-                }
-            });
+            if (channelClickType == DELETE) {
+                v.setBackgroundResource(channelSelectedBackground);
+            }
             //该频道少一行，下面的view往上移
             if (channels.size() % channelColumn == 0) {
                 if (channels.size() == 0) {
