@@ -124,10 +124,14 @@ public class ChannelView extends ScrollView {
     private SparseIntArray channelBelongs = new SparseIntArray();
 
     /**
-     * 设置频道归属，只能设置已选频道中的
+     * 设置已选频道中的频道所属板块，能在删除该频道时让该频道回到所属板块中，
+     * 如果不设置，默认都归属于下标为1的板块中,只能在{@link ChannelView#setChannels(Map)}方法之前调用
+     *
+     * @param channelIndex 已选频道中的频道下标
+     * @param plateIndex   归属于哪一板块
      */
-    public void setMyChannelBelong(int channelIndex, int belongId) {
-        channelBelongs.put(channelIndex, belongId);
+    public void setMyChannelBelong(int channelIndex, int plateIndex) {
+        channelBelongs.put(channelIndex, plateIndex);
     }
 
     private int channelNormalBackground = R.drawable.bg_channel_normal;
@@ -191,6 +195,15 @@ public class ChannelView extends ScrollView {
             }
         }
         return channels;
+    }
+
+    /**
+     * 点击编辑频道
+     */
+    public void edit() {
+        if (channelLayout != null) {
+            channelLayout.edit();
+        }
     }
 
     public interface OnChannelListener {
@@ -425,8 +438,10 @@ public class ChannelView extends ScrollView {
                             textView.setTextColor(channelFixedColor);
                         }
                         textView.setOnClickListener(this);
-                        textView.setOnTouchListener(this);
-                        textView.setOnLongClickListener(this);
+                        if (j == 0) {
+                            textView.setOnTouchListener(this);
+                            textView.setOnLongClickListener(this);
+                        }
                         //设置每个频道的间距
                         LayoutParams params = new LayoutParams();
                         int leftMargin = verticalSpacing, topMargin = horizontalSpacing, rightMargin = verticalSpacing, bottomMargin = horizontalSpacing;
@@ -530,6 +545,10 @@ public class ChannelView extends ScrollView {
             return true;
         }
 
+        private void edit() {
+
+        }
+
         /**
          * 后面的频道向前排序
          *
@@ -571,6 +590,8 @@ public class ChannelView extends ScrollView {
             ChannelAttr finalMyChannelTag = (ChannelAttr) finalMyChannel.getTag();
             myChannels.add(myChannels.size(), v);
             channels.remove(v);
+            v.setOnTouchListener(this);
+            v.setOnLongClickListener(this);
             animateChangeGridViewHeight();
             final ViewPropertyAnimator animate = v.animate();
             if (myChannels.size() % channelColumn == 1 || channelColumn == 1) {
@@ -625,6 +646,8 @@ public class ChannelView extends ScrollView {
             v.animate().x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             beLongChannels.add(0, v);
             channelGroups.get(0).remove(v);
+            v.setOnTouchListener(null);
+            v.setOnLongClickListener(null);
             animateChangeGridViewHeight();
             PointF newPointF;
             ChannelAttr finalChannelViewTag = (ChannelAttr) beLongChannels.get(beLongChannels.size() - 1).getTag();
@@ -772,7 +795,7 @@ public class ChannelView extends ScrollView {
                                 objectAnimators[2 * (j - i)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
                                 objectAnimators[2 * (j - i) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
                             }
-                        } else if (i > vIndex) {
+                        } else {
                             for (int j = i; j > vIndex; j--) {
                                 TextView view = (TextView) myChannels.get(j);
                                 ChannelAttr viewTag = (ChannelAttr) view.getTag();

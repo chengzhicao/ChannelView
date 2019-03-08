@@ -38,12 +38,12 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
         channels.put("国外", recommendChannel2);
 
         channelView.setFixedChannel(2);
-        channelView.setChannels(channels);
         channelView.setMyChannelBelong(1, 2);
         channelView.setMyChannelBelong(1, 3);
         channelView.setMyChannelBelong(5, 4);
         channelView.setMyChannelBelong(7, 3);
         channelView.setMyChannelBelong(0, 2);
+        channelView.setChannels(channels);
         channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
         channelView.setChannelSelectedBackground(R.drawable.bg_channel_selected);
         channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
