@@ -90,13 +90,6 @@ public class ChannelView extends ScrollView {
         typedArray.recycle();
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return !isChannelLongClick && super.onInterceptTouchEvent(ev);
-    }
-
-    private boolean isChannelLongClick;
-
     /**
      * 设置前toPosition+1个channel不能拖动
      *
@@ -216,35 +209,7 @@ public class ChannelView extends ScrollView {
         this.onChannelListener = onChannelListener;
     }
 
-    /**
-     * 频道属性
-     */
-    private class ChannelAttr {
-        static final int TITLE = 0x01;
-        static final int CHANNEL = 0x02;
-
-        /**
-         * view类型
-         */
-        private int type;
-
-        /**
-         * view坐标
-         */
-        private PointF coordinate;
-
-        /**
-         * view所在的channelGroups位置
-         */
-        private int groupIndex;
-
-        /**
-         * 频道归属，用于删除频道时该频道的归属位置（推荐、国内、国外）,默认都为1
-         */
-        private int belong = 1;
-    }
-
-    private class ChannelLayout extends GridLayout implements OnTouchListener, OnLongClickListener, OnClickListener {
+    private class ChannelLayout extends GridLayout implements OnLongClickListener, OnClickListener, OnTouchListener {
 
         /**
          * 频道最小可拖动距离
@@ -303,6 +268,31 @@ public class ChannelView extends ScrollView {
          * 是否通过动画改变高度
          */
         private boolean isAnimateChangeHeight;
+
+        /**
+         * 是否是编辑状态
+         */
+        private boolean isEditState;
+
+        /**
+         * 是否发生拖拽
+         */
+        private boolean isDrag;
+
+        /**
+         * 是否为获取焦点状态
+         */
+        private boolean isFocused;
+
+        /**
+         * 时间间隔
+         */
+        private long time;
+
+        /**
+         * 可允许拖拽的最小间隔时间
+         */
+        private final int MIN_TIME_INTERVAL = 100;
 
         public ChannelLayout(Context context) {
             this(context, null);
@@ -437,11 +427,11 @@ public class ChannelView extends ScrollView {
                         if (j == 0 && i <= channelFixedToPosition) {
                             textView.setTextColor(channelFixedColor);
                         }
-                        textView.setOnClickListener(this);
                         if (j == 0) {
-                            textView.setOnTouchListener(this);
                             textView.setOnLongClickListener(this);
+                            textView.setOnTouchListener(this);
                         }
+                        textView.setOnClickListener(this);
                         //设置每个频道的间距
                         LayoutParams params = new LayoutParams();
                         int leftMargin = verticalSpacing, topMargin = horizontalSpacing, rightMargin = verticalSpacing, bottomMargin = horizontalSpacing;
@@ -475,17 +465,34 @@ public class ChannelView extends ScrollView {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+//            //如果点击的是我的频道组中的频道
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 downX = event.getRawX();
                 downY = event.getRawY();
+                time = System.currentTimeMillis();
             }
-            if (event.getAction() == MotionEvent.ACTION_MOVE && isChannelLongClick) {
-                //手移动时拖动频道
-                channelDrag(v, event);
-            }
-            if (event.getAction() == MotionEvent.ACTION_UP && isChannelLongClick) {
-                //手抬起时频道状态
-                channelDragUp(v);
+            if (isEditState) {
+                if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    if (System.currentTimeMillis() - time > MIN_TIME_INTERVAL) {
+                        //手移动时拖动频道
+                        if (!isFocused) {
+                            v.bringToFront();
+                            v.setBackgroundResource(channelFocusedBackground);
+                        }
+                        isDrag = true;
+                        //请求ScrollView不要拦截MOVE事件，交给TextView处理
+                        requestDisallowInterceptTouchEvent(true);
+                        channelDrag(v, event);
+                    }
+                }
+                if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    //手抬起时频道状态
+                    channelDragUp(v);
+                    if (isDrag) {
+                        isDrag = false;
+                        return true;
+                    }
+                }
             }
             return false;
         }
@@ -504,7 +511,8 @@ public class ChannelView extends ScrollView {
             } else {
                 ChannelAttr tag = (ChannelAttr) v.getTag();
                 ArrayList<View> channels = channelGroups.get(tag.groupIndex);
-                if (tag.groupIndex == 0) {//如果点击的是我的频道组中的频道
+                //如果点击的是我的频道组中的频道
+                if (tag.groupIndex == 0) {
                     if (channelClickType == DELETE && channels.indexOf(v) > channelFixedToPosition) {
                         forwardSort(v, channels);
                         //减少我的频道
@@ -525,28 +533,33 @@ public class ChannelView extends ScrollView {
 
         @Override
         public boolean onLongClick(View v) {
-            v.bringToFront();
-            ChannelAttr tag = (ChannelAttr) v.getTag();
-            if (tag.groupIndex == 0) {//判断是否点击的我的频道组
-                ArrayList<View> views = channelGroups.get(0);
-                int indexOf = views.indexOf(v);
-                if (indexOf > channelFixedToPosition) {
-                    for (int i = channelFixedToPosition + 1; i < views.size(); i++) {
-                        if (i == indexOf) {
-                            views.get(i).setBackgroundResource(channelFocusedBackground);
-                        } else {
-                            views.get(i).setBackgroundResource(channelSelectedBackground);
-                        }
-                    }
-                    changeTip(true);
-                }
+            if (isEditState) {
+                return true;
             }
-            //要返回true，否则会出发onclick事件
+            v.bringToFront();
+            ArrayList<View> views = channelGroups.get(0);
+            int indexOf = views.indexOf(v);
+            if (indexOf > channelFixedToPosition) {
+                for (int i = channelFixedToPosition + 1; i < views.size(); i++) {
+                    if (i == indexOf) {
+                        views.get(i).setBackgroundResource(channelFocusedBackground);
+                    } else {
+                        views.get(i).setBackgroundResource(channelSelectedBackground);
+                    }
+                }
+                changeTip(true);
+            }
+            isFocused = true;
+            //要返回true，否则会触发onclick事件
             return true;
         }
 
         private void edit() {
-
+            ArrayList<View> views = channelGroups.get(0);
+            for (int i = channelFixedToPosition + 1; i < views.size(); i++) {
+                views.get(i).setBackgroundResource(channelSelectedBackground);
+            }
+            changeTip(true);
         }
 
         /**
@@ -590,8 +603,8 @@ public class ChannelView extends ScrollView {
             ChannelAttr finalMyChannelTag = (ChannelAttr) finalMyChannel.getTag();
             myChannels.add(myChannels.size(), v);
             channels.remove(v);
-            v.setOnTouchListener(this);
             v.setOnLongClickListener(this);
+            v.setOnTouchListener(this);
             animateChangeGridViewHeight();
             final ViewPropertyAnimator animate = v.animate();
             if (myChannels.size() % channelColumn == 1 || channelColumn == 1) {
@@ -646,8 +659,8 @@ public class ChannelView extends ScrollView {
             v.animate().x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             beLongChannels.add(0, v);
             channelGroups.get(0).remove(v);
-            v.setOnTouchListener(null);
             v.setOnLongClickListener(null);
+            v.setOnTouchListener(null);
             animateChangeGridViewHeight();
             PointF newPointF;
             ChannelAttr finalChannelViewTag = (ChannelAttr) beLongChannels.get(beLongChannels.size() - 1).getTag();
@@ -823,7 +836,7 @@ public class ChannelView extends ScrollView {
          * @param v
          */
         private void channelDragUp(View v) {
-            isChannelLongClick = false;
+            isFocused = false;
             ChannelAttr vTag = (ChannelAttr) v.getTag();
             v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
             v.setBackgroundResource(channelSelectedBackground);
@@ -840,12 +853,12 @@ public class ChannelView extends ScrollView {
                 tipFinish.setVisibility(VISIBLE);
                 tipEdit.setVisibility(INVISIBLE);
                 channelClickType = DELETE;
-                isChannelLongClick = true;
+                isEditState = true;
             } else {
                 tipFinish.setVisibility(INVISIBLE);
                 tipEdit.setVisibility(VISIBLE);
                 channelClickType = NORMAL;
-                isChannelLongClick = false;
+                isEditState = false;
                 for (int i = 0; i < views.size(); i++) {
                     if (i > channelFixedToPosition) {
                         views.get(i).setBackgroundResource(channelNormalBackground);
