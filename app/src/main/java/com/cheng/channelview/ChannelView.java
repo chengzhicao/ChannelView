@@ -14,8 +14,6 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -32,7 +30,7 @@ import java.util.Map;
 
 public class ChannelView extends ScrollView {
     private Context mContext;
-    private Map<String, String[]> channelContents = new LinkedHashMap<>();
+    private Map<String, List<Channel>> channelContents = new LinkedHashMap<>();
     private int channelFixedToPosition = -1;
     private ChannelLayout channelLayout;
 
@@ -102,31 +100,17 @@ public class ChannelView extends ScrollView {
     }
 
     /**
-     * 设置频道集合
-     *
-     * @param channels
+     * 添加频道板块
      */
-    public void setChannels(Map<String, String[]> channels) {
-        if (channels != null) {
-            channelContents = channels;
-            if (channelContents.size() == 1) {//如果只有一组频道，默认再加上一组
-                channelContents.put("推荐频道", null);
+    public void addPlate(String plateName, List<Channel> channelList) {
+        if (channelList != null && channelList.size() > 0) {
+            if (channelContents.size() != 0) {
+                for (Channel channel : channelList) {
+                    channel.channelBelong = channelContents.size();
+                }
             }
-            inflateData();
+            channelContents.put(plateName, channelList);
         }
-    }
-
-    private SparseIntArray channelBelongs = new SparseIntArray();
-
-    /**
-     * 设置已选频道中的频道所属板块，能在删除该频道时让该频道回到所属板块中，
-     * 如果不设置，默认都归属于下标为1的板块中,只能在{@link ChannelView#setChannels(Map)}方法之前调用
-     *
-     * @param channelIndex 已选频道中的频道下标
-     * @param plateIndex   归属于哪一板块
-     */
-    public void setMyChannelBelong(int channelIndex, int plateIndex) {
-        channelBelongs.put(channelIndex, plateIndex);
     }
 
     private int channelNormalBackground = R.drawable.bg_channel_normal;
@@ -167,9 +151,13 @@ public class ChannelView extends ScrollView {
     private OnChannelListener onChannelListener;
 
     /**
-     * 填充数据
+     * 添加完频道模块之后，进行填充数据
      */
-    private void inflateData() {
+    public void inflateData() {
+        //如果只有一组频道，默认再加上一组
+        if (channelContents.size() == 1) {
+            channelContents.put("推荐频道", null);
+        }
         if (channelLayout == null) {
             channelLayout = new ChannelLayout(mContext);
             addView(channelLayout);
@@ -181,30 +169,20 @@ public class ChannelView extends ScrollView {
      *
      * @return
      */
-    public String[] getMyChannel() {
-        String[] channels = null;
+    public List<Channel> getMyChannel() {
+        List<Channel> channels = new ArrayList<>();
         if (channelLayout != null && channelLayout.channelGroups.size() > 0) {
-            channels = new String[channelLayout.channelGroups.get(0).size()];
-            for (int i = 0; i < channels.length; i++) {
-                channels[i] = ((TextView) channelLayout.channelGroups.get(0).get(i)).getText().toString();
+            for (View view : channelLayout.channelGroups.get(0)) {
+                channels.add(((ChannelAttr) view.getTag()).channel);
             }
         }
         return channels;
     }
 
-    /**
-     * 点击编辑频道
-     */
-    public void edit() {
-        if (channelLayout != null) {
-            channelLayout.edit();
-        }
-    }
-
     public interface OnChannelListener {
-        void channelItemClick(int itemId, String channel);
+        void channelItemClick(int position, Channel channel);
 
-        void channelFinish(List<String> channels);
+        void channelFinish(List<Channel> channelList);
     }
 
     public void setOnChannelItemClickListener(OnChannelListener onChannelListener) {
@@ -360,11 +338,11 @@ public class ChannelView extends ScrollView {
                 int j = 0;
                 int startRow = 0;
                 for (String aKeySet : channelContents.keySet()) {//遍历key值，设置标题名称
-                    String[] channelContent = channelContents.get(aKeySet);
+                    List<Channel> channelContent = channelContents.get(aKeySet);
                     if (channelContent == null) {
-                        channelContent = new String[]{};
+                        channelContent = new ArrayList<>();
                     }
-                    groupChannelColumns[j] = channelContent.length % channelColumn == 0 ? channelContent.length / channelColumn : channelContent.length / channelColumn + 1;
+                    groupChannelColumns[j] = channelContent.size() % channelColumn == 0 ? channelContent.size() / channelColumn : channelContent.size() / channelColumn + 1;
                     if (j == 0) {
                         startRow = 0;
                     } else {
@@ -378,6 +356,7 @@ public class ChannelView extends ScrollView {
                     if (j == 0) {
                         tipEdit = view.findViewById(R.id.tv_tip_edit);
                         tipEdit.setVisibility(VISIBLE);
+                        tipEdit.setOnClickListener(this);
                         tipFinish = view.findViewById(R.id.tv_tip_finish);
                         tipFinish.setVisibility(INVISIBLE);
                         tipFinish.setOnClickListener(this);
@@ -392,28 +371,17 @@ public class ChannelView extends ScrollView {
                     addView(view, layoutParams);
                     channelTitleGroups.add(view);
                     ArrayList<View> channelGroup = new ArrayList<>();
-                    int remainder = channelContent.length % channelColumn;
-                    for (int i = 0; i < channelContent.length; i++) {//遍历value中的频道
+                    int remainder = channelContent.size() % channelColumn;
+                    for (int i = 0; i < channelContent.size(); i++) {//遍历value中的频道
                         TextView textView = new TextView(mContext);
                         ChannelAttr channelAttr = new ChannelAttr();
                         channelAttr.type = ChannelAttr.CHANNEL;
                         channelAttr.groupIndex = j;
                         channelAttr.coordinate = new PointF();
-                        if (j != 0) {
-                            channelAttr.belong = j;
-                        } else {
-                            if (channelBelongs.indexOfKey(i) >= 0) {
-                                int belongId = channelBelongs.get(i);
-                                if (belongId > 0 && belongId < channelContents.size()) {
-                                    channelAttr.belong = belongId;
-                                } else {
-                                    Log.w(getClass().getSimpleName(), "归属ID不存在，默认设置为1");
-                                }
-                            }
-                        }
+                        channelAttr.channel = channelContent.get(i);
                         //为频道添加ChannelAttr属性
                         textView.setTag(channelAttr);
-                        textView.setText(channelContent[i]);
+                        textView.setText(channelContent.get(i).channelName);
                         textView.setGravity(Gravity.CENTER);
                         textView.setBackgroundResource(channelNormalBackground);
                         if (j == 0 && i <= channelFixedToPosition) {
@@ -437,11 +405,11 @@ public class ChannelView extends ScrollView {
                             topMargin = 0;
                         }
                         if (remainder == 0) {
-                            if (i >= channelContent.length - channelColumn) {
+                            if (i >= channelContent.size() - channelColumn) {
                                 bottomMargin = 0;
                             }
                         } else {
-                            if (i >= channelContent.length - remainder) {
+                            if (i >= channelContent.size() - remainder) {
                                 bottomMargin = 0;
                             }
                         }
@@ -520,14 +488,12 @@ public class ChannelView extends ScrollView {
 
         @Override
         public void onClick(View v) {
-            if (v == tipFinish) {//点击完成按钮时
+            if (v == tipEdit) {
+                edit();
+            } else if (v == tipFinish) {//点击完成按钮时
                 changeTip(false);
-                List<String> myChannels = new ArrayList<>();
-                for (View view : channelGroups.get(0)) {
-                    myChannels.add(((TextView) view).getText().toString());
-                }
                 if (onChannelListener != null) {
-                    onChannelListener.channelFinish(myChannels);
+                    onChannelListener.channelFinish(getMyChannel());
                 }
             } else {
                 ChannelAttr tag = (ChannelAttr) v.getTag();
@@ -541,7 +507,7 @@ public class ChannelView extends ScrollView {
                     } else if (channelClickType == NORMAL) {
                         //普通状态时进行点击事件回调
                         if (onChannelListener != null) {
-                            onChannelListener.channelItemClick(channels.indexOf(v), ((TextView) v).getText().toString());
+                            onChannelListener.channelItemClick(channels.indexOf(v), ((ChannelAttr) v.getTag()).channel);
                         }
                     }
                 } else {//点击的其他频道组中的频道
@@ -670,9 +636,13 @@ public class ChannelView extends ScrollView {
                 v.setBackgroundResource(channelNormalBackground);
             }
             ChannelAttr tag = (ChannelAttr) v.getTag();
-            ArrayList<View> beLongChannels = channelGroups.get(tag.belong);
+            int belong = tag.channel.channelBelong;
+            if (belong < 1 || belong > channelContents.size() - 1) {
+                belong = 1;
+            }
+            ArrayList<View> beLongChannels = channelGroups.get(belong);
             if (beLongChannels.size() == 0) {
-                tag.coordinate = new PointF(((ChannelAttr) channelTitleGroups.get(tag.belong).getTag()).coordinate.x, ((ChannelAttr) channelTitleGroups.get(tag.belong).getTag()).coordinate.y + channelTitleGroups.get(tag.belong).getMeasuredHeight());
+                tag.coordinate = new PointF(((ChannelAttr) channelTitleGroups.get(belong).getTag()).coordinate.x, ((ChannelAttr) channelTitleGroups.get(belong).getTag()).coordinate.y + channelTitleGroups.get(belong).getMeasuredHeight());
             } else {
                 ChannelAttr arriveTag = (ChannelAttr) beLongChannels.get(0).getTag();
                 tag.coordinate = arriveTag.coordinate;
@@ -697,9 +667,9 @@ public class ChannelView extends ScrollView {
             if (beLongChannels.size() % channelColumn == 1) {
                 //回收来频道中多了一行，底下的所有view全都下移
                 if (beLongChannels.size() == 1) {
-                    viewMove(tag.belong + 1, channelHeight);
+                    viewMove(belong + 1, channelHeight);
                 } else {
-                    viewMove(tag.belong + 1, channelHeight + horizontalSpacing * 2);
+                    viewMove(belong + 1, channelHeight + horizontalSpacing * 2);
                 }
                 newPointF = new PointF(tag.coordinate.x, finalChannelViewTag.coordinate.y + channelHeight + horizontalSpacing * 2);
             } else {
@@ -717,7 +687,7 @@ public class ChannelView extends ScrollView {
                 }
                 currentView.animate().x(currentViewTag.coordinate.x).y(currentViewTag.coordinate.y).setDuration(DURATION_TIME);
             }
-            tag.groupIndex = tag.belong;
+            tag.groupIndex = belong;
         }
 
         /**
