@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
@@ -275,24 +277,14 @@ public class ChannelView extends ScrollView {
         private boolean isEditState;
 
         /**
-         * 是否发生拖拽
+         * 是否允许拖拽
          */
-        private boolean isDrag;
-
-        /**
-         * 是否为获取焦点状态
-         */
-        private boolean isFocused;
-
-        /**
-         * 时间间隔
-         */
-        private long time;
+        private boolean isAccessDrag;
 
         /**
          * 可允许拖拽的最小间隔时间
          */
-        private final int MIN_TIME_INTERVAL = 100;
+        private final int MIN_TIME_INTERVAL = 80;
 
         public ChannelLayout(Context context) {
             this(context, null);
@@ -469,33 +461,62 @@ public class ChannelView extends ScrollView {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 downX = event.getRawX();
                 downY = event.getRawY();
-                time = System.currentTimeMillis();
+                if (isEditState) {
+                    setTime(v);
+                }
             }
             if (isEditState) {
-                if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    if (System.currentTimeMillis() - time > MIN_TIME_INTERVAL) {
-                        //手移动时拖动频道
-                        if (!isFocused) {
-                            v.bringToFront();
-                            v.setBackgroundResource(channelFocusedBackground);
-                        }
-                        isDrag = true;
-                        //请求ScrollView不要拦截MOVE事件，交给TextView处理
-                        requestDisallowInterceptTouchEvent(true);
-                        channelDrag(v, event);
-                    }
+                if (event.getAction() == MotionEvent.ACTION_MOVE && isAccessDrag) {
+                    //手移动时拖动频道
+                    //请求ScrollView不要拦截MOVE事件，交给TextView处理
+                    requestDisallowInterceptTouchEvent(true);
+                    channelDrag(v, event);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    //手抬起时频道状态
-                    channelDragUp(v);
-                    if (isDrag) {
-                        isDrag = false;
+                    if (thread != null && thread.isAlive() && !thread.isInterrupted()) {
+                        thread.interrupt();
+                    }
+                    if (isAccessDrag) {
+                        ChannelAttr vTag = (ChannelAttr) v.getTag();
+                        v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
+                        v.setBackgroundResource(channelSelectedBackground);
+                        isAccessDrag = false;
                         return true;
                     }
                 }
             }
             return false;
         }
+
+        private void setTime(final View v) {
+            thread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        sleep(MIN_TIME_INTERVAL);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                    Message message = new Message();
+                    message.obj = v;
+                    handler.sendMessage(message);
+                }
+            };
+            thread.start();
+        }
+
+        private Thread thread;
+
+        private Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                View v = (View) msg.obj;
+                v.bringToFront();
+                v.setBackgroundResource(channelFocusedBackground);
+                isAccessDrag = true;
+            }
+        };
 
         @Override
         public void onClick(View v) {
@@ -549,7 +570,7 @@ public class ChannelView extends ScrollView {
                 }
                 changeTip(true);
             }
-            isFocused = true;
+            isAccessDrag = true;
             //要返回true，否则会触发onclick事件
             return true;
         }
@@ -828,18 +849,6 @@ public class ChannelView extends ScrollView {
                     }
                 }
             }
-        }
-
-        /**
-         * 频道拖动抬起
-         *
-         * @param v
-         */
-        private void channelDragUp(View v) {
-            isFocused = false;
-            ChannelAttr vTag = (ChannelAttr) v.getTag();
-            v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
-            v.setBackgroundResource(channelSelectedBackground);
         }
 
         /**
