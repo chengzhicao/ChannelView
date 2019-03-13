@@ -116,13 +116,17 @@ public class ChannelView extends ScrollView {
     private int channelNormalBackground = R.drawable.bg_channel_normal;
     private int channelSelectedBackground = R.drawable.bg_channel_selected;
     private int channelFocusedBackground = R.drawable.bg_channel_focused;
-    private int channelFixedColor = Color.parseColor("#CCCCCC");
+    private List<TextView> fixedTextView = new ArrayList<>();
+    private List<TextView> allTextView = new ArrayList<>();
 
     /**
      * 设置频道正常状态
      */
     public void setChannelNormalBackground(@DrawableRes int channelNormalBackground) {
         this.channelNormalBackground = channelNormalBackground;
+        for (TextView textView : allTextView) {
+            textView.setBackgroundResource(channelNormalBackground);
+        }
     }
 
     /**
@@ -145,7 +149,9 @@ public class ChannelView extends ScrollView {
      * @param channelFixedColorRes
      */
     public void setChannelFixedColor(@ColorInt int channelFixedColorRes) {
-        this.channelFixedColor = channelFixedColorRes;
+        for (TextView textView : fixedTextView) {
+            textView.setTextColor(channelFixedColorRes);
+        }
     }
 
     private OnChannelListener onChannelListener;
@@ -385,8 +391,11 @@ public class ChannelView extends ScrollView {
                         textView.setGravity(Gravity.CENTER);
                         textView.setBackgroundResource(channelNormalBackground);
                         if (j == 0 && i <= channelFixedToPosition) {
-                            textView.setTextColor(channelFixedColor);
+                            textView.setTextColor(Color.parseColor("#CCCCCC"));
+                            fixedTextView.add(textView);
+                            allTextView.remove(textView);
                         }
+                        allTextView.add(textView);
                         if (j == 0) {
                             textView.setOnLongClickListener(this);
                             textView.setOnTouchListener(this);
