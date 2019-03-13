@@ -38,8 +38,10 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
             String aMyChannel = myChannel[i];
             Channel channel;
             if (i > 2 && i < 6) {
-                channel = new Channel(aMyChannel, 10, i);
+                //可设置频道归属板块（channelBelong），当前设置此频道归属于第二板块，当删除该频道时该频道将回到第二板块
+                channel = new Channel(aMyChannel, 2, i);
             } else if (i > 7 && i < 10) {
+                //可设置频道归属板块（channelBelong），当前设置此频道归属于第三板块，当删除该频道时该频道将回到第三板块中
                 channel = new Channel(aMyChannel, 3, i);
             } else {
                 channel = new Channel(aMyChannel, (Object) i);

@@ -8,8 +8,8 @@
 |名称|描述
 |---|---|
 |setFixedChannel(int toPosition)| 设置前toPosition+1个channel不能拖动，toPosition是数组下标
-|setChannels(Map<String, String[]> channels)| 设置频道集合，第0项为“我的频道”，可拖拽、删除，剩下的所有为其他频道
-|setMyChannelBelong(int channelIndex, int belongId)| 设置频道归属，只能设置在我的频道中
+|addPlate(String plateName, List<Channel> channelList)| 添加频道板块
+|inflateData()| 添加完频道板块之后，进行填充数据，要在addPlate方法之后调用
 |setChannelNormalBackground(@DrawableRes int channelNormalBackground)| 设置频道正常状态
 |setChannelSelectedBackground(@DrawableRes int channelSelectedBackground)| 设置频道已选择状态器
 |setChannelFocusedBackground(@DrawableRes int channelFocusedBackground)| 设置频道点击状态
@@ -21,8 +21,8 @@
 
 |名称|描述
 |---|---|
-|channelItemClick(int itemId, String channel)| 频道点击回调
-|channelFinish(List<String> channels)| 频道编辑完成回调
+|channelItemClick(int position, Channel channel)| 频道点击回调
+|channelFinish(List<Channel> channelList)| 频道编辑完成回调
 
 # 属性
 
@@ -66,40 +66,69 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
     private void init() {
         String[] myChannel = {"要闻", "视频", "新时代", "娱乐", "体育", "军事", "NBA", "国际", "科技", "财经", "汽车", "电影", "游戏", "独家", "房产",
                 "图片", "时尚", "呼和浩特", "三打白骨精"};
-        String[] recommendChannel0 = {"综艺", "美食", "育儿", "冰雪", "必读", "政法网事", "都市",
+        String[] recommendChannel1 = {"综艺", "美食", "育儿", "冰雪", "必读", "政法网事", "都市",
                 "NFL", "韩流"};
-        String[] recommendChannel = {"问答", "文化", "佛学", "股票", "动漫", "理财", "情感", "职场", "旅游"};
-        String[] recommendChannel2 = {"家居", "电竞", "数码", "星座", "教育", "美容", "电视剧",
+        String[] recommendChannel2 = {"问答", "文化", "佛学", "股票", "动漫", "理财", "情感", "职场", "旅游"};
+        String[] recommendChannel3 = {"家居", "电竞", "数码", "星座", "教育", "美容", "电视剧",
                 "搏击", "健康"};
 
-        Map<String, String[]> channels = new LinkedHashMap<>();
-        channels.put("我的频道", myChannel);
-        channels.put("推荐频道", recommendChannel0);
-        channels.put("国内", recommendChannel);
-        channels.put("国外", recommendChannel2);
+        List<Channel> myChannelList = new ArrayList<>();
+        List<Channel> recommendChannelList1 = new ArrayList<>();
+        List<Channel> recommendChannelList2 = new ArrayList<>();
+        List<Channel> recommendChannelList3 = new ArrayList<>();
+
+        for (int i = 0; i < myChannel.length; i++) {
+            String aMyChannel = myChannel[i];
+            Channel channel;
+            if (i > 2 && i < 6) {
+                //可设置频道归属板块（channelBelong），当前设置此频道归属于第二板块，当删除该频道时该频道将回到第二板块
+                channel = new Channel(aMyChannel, 2, i);
+            } else if (i > 7 && i < 10) {
+                //可设置频道归属板块（channelBelong），当前设置此频道归属于第三板块，当删除该频道时该频道将回到第三板块中
+                channel = new Channel(aMyChannel, 3, i);
+            } else {
+                channel = new Channel(aMyChannel, (Object) i);
+            }
+            myChannelList.add(channel);
+        }
+
+        for (String aMyChannel : recommendChannel1) {
+            Channel channel = new Channel(aMyChannel);
+            recommendChannelList1.add(channel);
+        }
+
+        for (String aMyChannel : recommendChannel2) {
+            Channel channel = new Channel(aMyChannel);
+            recommendChannelList2.add(channel);
+        }
+
+        for (String aMyChannel : recommendChannel3) {
+            Channel channel = new Channel(aMyChannel);
+            recommendChannelList3.add(channel);
+        }
 
         channelView.setFixedChannel(2);
-        channelView.setChannels(channels);
-        channelView.setMyChannelBelong(1, 2);
-        channelView.setMyChannelBelong(1, 3);
-        channelView.setMyChannelBelong(5, 4);
-        channelView.setMyChannelBelong(7, 3);
-        channelView.setMyChannelBelong(0, 2);
+        channelView.addPlate("我的频道", myChannelList);
+        channelView.addPlate("推荐频道", recommendChannelList1);
+        channelView.addPlate("国内", recommendChannelList2);
+        channelView.addPlate("国外", recommendChannelList3);
+        channelView.inflateData();
         channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
         channelView.setChannelSelectedBackground(R.drawable.bg_channel_selected);
         channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
         channelView.setOnChannelItemClickListener(this);
+    }
 
+
+    @Override
+    public void channelItemClick(int position, Channel channel) {
+        Log.i(TAG, position + ".." + channel);
     }
 
     @Override
-    public void channelItemClick(int itemId, String channel) {
-        Log.i(TAG, itemId + ".." + channel);
-    }
-
-    @Override
-    public void channelFinish(List<String> channels) {
-        Log.i(TAG, channels.toString());
+    public void channelFinish(List<Channel> channelList) {
+        Log.i(TAG, channelList.toString());
+        Log.i(TAG, channelView.getMyChannel().toString());
     }
 }
 ```
@@ -108,8 +137,14 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 # v1.0.1更新说明
 > 修复拖拽时出现的崩溃bug
 
-# v1.0.2
+# v1.0.2更新说明
 > 修复删除我的频道后该频道仍显示删除icon的问题
+
+# v1.0.3更新说明
+> 1. 简化频道设置方法
+> 2. 可通过两种方式编辑频道，长按编辑和点击按键主动编辑
+> 3. 设置频道额外属性（可用于保存频道Id或者设置其它信息）
+> 4. 修复setChannelFixedColor方法和setChannelNormalBackground方法无效bug
 
 # 项目详细解读
 
