@@ -64,14 +64,14 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
             recommendChannelList3.add(channel);
         }
 
-        channelView.setFixedChannel(2);
+        channelView.setChannelFixedCount(3);
         channelView.addPlate("我的频道", myChannelList);
         channelView.addPlate("推荐频道", recommendChannelList1);
         channelView.addPlate("国内", recommendChannelList2);
         channelView.addPlate("国外", recommendChannelList3);
         channelView.inflateData();
         channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
-        channelView.setChannelSelectedBackground(R.drawable.bg_channel_selected);
+        channelView.setChannelEditBackground(R.drawable.bg_channel_edit);
         channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
         channelView.setOnChannelItemClickListener(this);
     }

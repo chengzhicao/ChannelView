@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="ChannelView">
-        <attr name="channelSpacing" format="dimension" />
         <attr name="channelHeight" format="dimension" />
         <attr name="channelColumn" format="integer" />
         <attr name="channelPadding" format="dimension" />
         <attr name="channelVerticalSpacing" format="dimension" />
         <attr name="channelHorizontalSpacing" format="dimension" />
+        <attr name="channelNormalBackground" format="reference" />
+        <attr name="channelEditBackground" format="reference" />
+        <attr name="channelFocusedBackground" format="reference" />
+        <attr name="channelNormalTextColor" format="color" />
+        <attr name="channelFixedCount" format="integer" />
+        <attr name="channelFixedTextColor" format="color" />
+        <attr name="channelFixedBackground" format="reference" />
+        <attr name="channelFocusedTextColor" format="color" />
+        <attr name="channelTextSize" format="dimension" />
+        <attr name="tipEditBackground" format="reference" />
+        <attr name="platesTitleBackground" format="reference" />
+        <attr name="tipEditTextColor" format="color" />
+        <attr name="platesTitleColor" format="color" />
+        <attr name="platesTitleBold" format="boolean" />
+        <attr name="tipEditTextSize" format="dimension" />
+        <attr name="platesTitleSize" format="dimension" />
+        <attr name="platesTitleHeight" format="dimension" />
+        <attr name="platesTitleLeftRightPadding" format="dimension" />
     </declare-styleable>
 </resources>

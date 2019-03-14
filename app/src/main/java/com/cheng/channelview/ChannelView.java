@@ -6,14 +6,16 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.ColorInt;
+import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,29 +33,89 @@ import java.util.Map;
 public class ChannelView extends ScrollView {
     private Context mContext;
     private Map<String, List<Channel>> channelContents = new LinkedHashMap<>();
-    private int channelFixedToPosition = -1;
+    private int channelFixedCount = 0;
     private ChannelLayout channelLayout;
 
     /**
      * 列数
      */
-    private int channelColumn;
+    private int channelColumn = 4;
 
     private int channelWidth;
 
     private int channelHeight;
 
+    /**
+     * 周围padding
+     */
     private int channelPadding;
+
+    /**
+     * 频道板块title高度
+     */
+    private int platesTitleHeight;
+
+    /**
+     * 频道板块title左右padding
+     */
+    private int platesTitleLeftRightPadding;
 
     /**
      * 水平方向上的间隔线
      */
-    private int horizontalSpacing;
+    private int channelHorizontalSpacing;
 
     /**
      * 竖直方向上的间隔线
      */
-    private int verticalSpacing;
+    private int channelVerticalSpacing;
+
+    @DrawableRes
+    private int channelNormalBackground;
+
+    @DrawableRes
+    private int channelEditBackground;
+
+    @DrawableRes
+    private int channelFocusedBackground;
+
+    @DrawableRes
+    private int channelFixedBackground;
+
+    @ColorInt
+    private int channelNormalTextColor;
+
+    @ColorInt
+    private int channelFixedTextColor;
+
+    @ColorInt
+    private int channelFocusedTextColor;
+
+    @DrawableRes
+    private int tipEditBackground;
+
+    @DrawableRes
+    private int platesTitleBackground;
+
+    @ColorInt
+    private int tipEditTextColor;
+
+    @ColorInt
+    private int platesTitleColor;
+
+    private boolean platesTitleBold;
+
+    private int platesTitleSize;
+
+    private int tipEditTextSize;
+
+    private int channelTextSize;
+
+    private List<TextView> fixedTextView = new ArrayList<>();
+
+    private List<TextView> allTextView = new ArrayList<>();
+
+    private List<TextView> platesTitle = new ArrayList<>();
 
     public ChannelView(Context context) {
         this(context, null);
@@ -67,36 +129,61 @@ public class ChannelView extends ScrollView {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ChannelView);
-        channelHeight = (int) typedArray.getDimension(R.styleable.ChannelView_channelHeight, 120);
-        channelColumn = typedArray.getInteger(R.styleable.ChannelView_channelColumn, 4);
-        channelPadding = (int) typedArray.getDimension(R.styleable.ChannelView_channelPadding, 0);
-        horizontalSpacing = (int) typedArray.getDimension(R.styleable.ChannelView_channelHorizontalSpacing, 0);
-        verticalSpacing = (int) typedArray.getDimension(R.styleable.ChannelView_channelVerticalSpacing, 0);
+        channelHeight = typedArray.getDimensionPixelSize(R.styleable.ChannelView_channelHeight, getResources().getDimensionPixelSize(R.dimen.channelHeight));
+        channelColumn = typedArray.getInteger(R.styleable.ChannelView_channelColumn, channelColumn);
+        channelPadding = typedArray.getDimensionPixelSize(R.styleable.ChannelView_channelPadding, getResources().getDimensionPixelSize(R.dimen.channelPadding));
+        channelHorizontalSpacing = typedArray.getDimensionPixelSize(R.styleable.ChannelView_channelHorizontalSpacing, getResources().getDimensionPixelSize(R.dimen.channelHorizontalSpacing));
+        channelVerticalSpacing = typedArray.getDimensionPixelSize(R.styleable.ChannelView_channelVerticalSpacing, getResources().getDimensionPixelSize(R.dimen.channelVerticalSpacing));
+        channelNormalBackground = typedArray.getResourceId(R.styleable.ChannelView_channelNormalBackground, R.drawable.bg_channel_normal);
+        channelEditBackground = typedArray.getResourceId(R.styleable.ChannelView_channelEditBackground, R.drawable.bg_channel_edit);
+        channelFocusedBackground = typedArray.getResourceId(R.styleable.ChannelView_channelFocusedBackground, R.drawable.bg_channel_focused);
+        channelFixedBackground = typedArray.getResourceId(R.styleable.ChannelView_channelFixedBackground, R.drawable.bg_channel_normal);
+        channelNormalTextColor = typedArray.getColor(R.styleable.ChannelView_channelNormalTextColor, getResources().getColor(R.color.channelNormalTextColor));
+        channelFixedTextColor = typedArray.getColor(R.styleable.ChannelView_channelFixedTextColor, getResources().getColor(R.color.channelFixedTextColor));
+        channelFocusedTextColor = typedArray.getColor(R.styleable.ChannelView_channelFocusedTextColor, getResources().getColor(R.color.channelNormalTextColor));
+        channelFixedCount = typedArray.getInteger(R.styleable.ChannelView_channelFixedCount, channelFixedCount);
+        channelTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_channelTextSize, getResources().getDimensionPixelSize(R.dimen.channelTextSize));
+        tipEditBackground = typedArray.getResourceId(R.styleable.ChannelView_tipEditBackground, R.drawable.bg_channel_transparent);
+        platesTitleBackground = typedArray.getResourceId(R.styleable.ChannelView_platesTitleBackground, R.drawable.bg_channel_transparent);
+        tipEditTextColor = typedArray.getColor(R.styleable.ChannelView_tipEditTextColor, getResources().getColor(R.color.channelNormalTextColor));
+        platesTitleColor = typedArray.getColor(R.styleable.ChannelView_platesTitleColor, getResources().getColor(R.color.channelNormalTextColor));
+        platesTitleBold = typedArray.getBoolean(R.styleable.ChannelView_platesTitleBold, false);
+        platesTitleSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_platesTitleSize, getResources().getDimensionPixelSize(R.dimen.channelTextSize));
+        tipEditTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_tipEditTextSize, getResources().getDimensionPixelSize(R.dimen.channelTextSize));
+        platesTitleHeight = typedArray.getDimensionPixelSize(R.styleable.ChannelView_platesTitleHeight, getResources().getDimensionPixelSize(R.dimen.platesTitleHeight));
+        platesTitleLeftRightPadding = typedArray.getDimensionPixelSize(R.styleable.ChannelView_platesTitleLeftRightPadding, getResources().getDimensionPixelSize(R.dimen.platesTitleLeftRightPadding));
+        typedArray.recycle();
         if (channelColumn < 1) {
             channelColumn = 1;
         }
-        if (channelHeight < 1) {
-            channelHeight = 120;
+        if (channelFixedCount < 0) {
+            channelFixedCount = 0;
         }
-        if (channelPadding < 0) {
-            channelPadding = 0;
-        }
-        if (horizontalSpacing < 0) {
-            horizontalSpacing = 0;
-        }
-        if (verticalSpacing < 0) {
-            verticalSpacing = 0;
-        }
-        typedArray.recycle();
     }
 
     /**
-     * 设置前toPosition+1个channel不能拖动
+     * 设置固定频道个数
      *
-     * @param toPosition 前toPosition个channel不能拖动，toPosition是下标
+     * @param channelFixedCount
      */
-    public void setFixedChannel(int toPosition) {
-        this.channelFixedToPosition = toPosition;
+    public void setChannelFixedCount(int channelFixedCount) {
+        if (channelFixedCount < 0) {
+            throw new RuntimeException("固定频道数量必须大于0");
+        }
+        this.channelFixedCount = channelFixedCount;
+        if (channelLayout == null) {
+            return;
+        }
+        if (channelLayout.channelGroups.size() > 0) {
+            if (channelFixedCount > channelLayout.channelGroups.get(0).size()) {
+                throw new RuntimeException("固定频道数量不能大于已选频道数量");
+            }
+            for (int i = 0; i < channelFixedCount; i++) {
+                View view = channelLayout.channelGroups.get(0).get(i);
+                view.setBackgroundResource(channelFixedBackground);
+                ((TextView) view).setTextColor(channelFixedTextColor);
+            }
+        }
     }
 
     /**
@@ -113,14 +200,8 @@ public class ChannelView extends ScrollView {
         }
     }
 
-    private int channelNormalBackground = R.drawable.bg_channel_normal;
-    private int channelSelectedBackground = R.drawable.bg_channel_selected;
-    private int channelFocusedBackground = R.drawable.bg_channel_focused;
-    private List<TextView> fixedTextView = new ArrayList<>();
-    private List<TextView> allTextView = new ArrayList<>();
-
     /**
-     * 设置频道正常状态
+     * 设置频道正常状态下背景
      */
     public void setChannelNormalBackground(@DrawableRes int channelNormalBackground) {
         this.channelNormalBackground = channelNormalBackground;
@@ -130,27 +211,197 @@ public class ChannelView extends ScrollView {
     }
 
     /**
-     * 设置频道已选择状态
+     * 设置频道编辑状态下背景
      */
-    public void setChannelSelectedBackground(@DrawableRes int channelSelectedBackground) {
-        this.channelSelectedBackground = channelSelectedBackground;
+    public void setChannelEditBackground(@DrawableRes int channelEditBackground) {
+        this.channelEditBackground = channelEditBackground;
     }
 
     /**
-     * 设置频道点击状态
+     * 设置频道编辑且点击状态下背景
      */
     public void setChannelFocusedBackground(@DrawableRes int channelFocusedBackground) {
         this.channelFocusedBackground = channelFocusedBackground;
     }
 
     /**
+     * 设置固定频道的背景
+     *
+     * @param channelFixedBackground
+     */
+    public void setChannelFixedBackground(@DrawableRes int channelFixedBackground) {
+        this.channelFixedBackground = channelFixedBackground;
+        for (TextView textView : fixedTextView) {
+            textView.setBackgroundResource(channelFixedBackground);
+        }
+    }
+
+    /**
      * 设置固定频道的颜色
      *
-     * @param channelFixedColorRes
+     * @param channelFixedTextColor
      */
-    public void setChannelFixedColor(@ColorInt int channelFixedColorRes) {
+    public void setChannelFixedTextColor(@ColorInt int channelFixedTextColor) {
+        this.channelFixedTextColor = channelFixedTextColor;
         for (TextView textView : fixedTextView) {
-            textView.setTextColor(channelFixedColorRes);
+            textView.setTextColor(channelFixedTextColor);
+        }
+    }
+
+    /**
+     * 设置频道字体颜色
+     *
+     * @param channelNormalTextColor
+     */
+    public void setChannelNormalTextColor(@ColorInt int channelNormalTextColor) {
+        this.channelNormalTextColor = channelNormalTextColor;
+        for (TextView textView : allTextView) {
+            textView.setTextColor(channelNormalTextColor);
+        }
+    }
+
+    /**
+     * 设置编辑且点击状态下频道字体颜色
+     *
+     * @param channelFocusedTextColor
+     */
+    public void setChannelFocusedTextColor(@ColorInt int channelFocusedTextColor) {
+        this.channelFocusedTextColor = channelFocusedTextColor;
+    }
+
+    /**
+     * 设置频道字体大小
+     *
+     * @param channelTextSize
+     */
+    public void setChannelTextSizeRes(@DimenRes int channelTextSize) {
+        this.channelTextSize = getResources().getDimensionPixelSize(channelTextSize);
+        for (TextView textView : allTextView) {
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.channelTextSize);
+        }
+        for (TextView textView : fixedTextView) {
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.channelTextSize);
+        }
+    }
+
+    /**
+     * 设置频道字体大小
+     *
+     * @param channelTextSize
+     */
+    public void setChannelTextSize(int unit, int channelTextSize) {
+        this.channelTextSize = (int) TypedValue.applyDimension(unit, channelTextSize, getResources().getDisplayMetrics());
+        for (TextView textView : allTextView) {
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.channelTextSize);
+        }
+        for (TextView textView : fixedTextView) {
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.channelTextSize);
+        }
+    }
+
+    /**
+     * 设置频道板块标题背景
+     *
+     * @param platesTitleBackground
+     */
+    public void setPlatesTitleBackground(@DrawableRes int platesTitleBackground) {
+        this.platesTitleBackground = platesTitleBackground;
+        for (TextView title : platesTitle) {
+            title.setBackgroundResource(platesTitleBackground);
+        }
+    }
+
+    /**
+     * 设置频道板块标题颜色
+     *
+     * @param platesTitleColor
+     */
+    public void setPlatesTitleColor(@ColorInt int platesTitleColor) {
+        this.platesTitleColor = platesTitleColor;
+        for (TextView title : platesTitle) {
+            title.setTextColor(platesTitleColor);
+        }
+    }
+
+    /**
+     * 设置编辑按键背景
+     *
+     * @param tipEditBackground
+     */
+    public void setTipEditBackground(@DrawableRes int tipEditBackground) {
+        this.tipEditBackground = tipEditBackground;
+        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+            channelLayout.tipEdit.setBackgroundResource(tipEditBackground);
+            channelLayout.tipFinish.setBackgroundResource(tipEditBackground);
+        }
+    }
+
+    /**
+     * 设置编辑按键颜色
+     *
+     * @param tipEditTextColor
+     */
+    public void setTipEditTextColor(@ColorInt int tipEditTextColor) {
+        this.tipEditTextColor = tipEditTextColor;
+        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+            channelLayout.tipEdit.setTextColor(tipEditTextColor);
+            channelLayout.tipFinish.setTextColor(tipEditTextColor);
+        }
+    }
+
+    /**
+     * 设置频道板块标题是否加粗
+     *
+     * @param platesTitleBold
+     */
+    public void setPlatesTitleBold(boolean platesTitleBold) {
+        this.platesTitleBold = platesTitleBold;
+        if (platesTitleBold) {
+            for (TextView title : platesTitle) {
+                title.setTypeface(Typeface.DEFAULT_BOLD);
+            }
+        }
+    }
+
+    /**
+     * 设置频道板块标题大小
+     *
+     * @param unit
+     * @param platesTitleSize
+     */
+    public void setPlatesTitleSize(int unit, int platesTitleSize) {
+        this.platesTitleSize = (int) TypedValue.applyDimension(unit, platesTitleSize, getResources().getDisplayMetrics());
+        for (TextView title : platesTitle) {
+            title.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.platesTitleSize);
+        }
+    }
+
+    public void setPlatesTitleSizeRes(@DimenRes int platesTitleSize) {
+        this.platesTitleSize = getResources().getDimensionPixelSize(platesTitleSize);
+        for (TextView title : platesTitle) {
+            title.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.platesTitleSize);
+        }
+    }
+
+    /**
+     * 设置编辑按键字体大小
+     *
+     * @param unit
+     * @param tipEditTextSize
+     */
+    public void setTipEditTextSize(int unit, int tipEditTextSize) {
+        this.tipEditTextSize = (int) TypedValue.applyDimension(unit, tipEditTextSize, getResources().getDisplayMetrics());
+        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+            channelLayout.tipEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
+            channelLayout.tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
+        }
+    }
+
+    public void setTipEditTextSizeRes(@DimenRes int tipEditTextSize) {
+        this.tipEditTextSize = getResources().getDimensionPixelSize(tipEditTextSize);
+        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+            channelLayout.tipEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
+            channelLayout.tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
         }
     }
 
@@ -298,13 +549,13 @@ public class ChannelView extends ScrollView {
                         allChannelTitleHeight += childAt.getMeasuredHeight();
                     } else if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.CHANNEL) {
                         //计算每个频道的宽高
-                        channelWidth = (width - verticalSpacing * (channelColumn * 2 - 2) - channelPadding * 2) / channelColumn;
+                        channelWidth = (width - channelVerticalSpacing * (channelColumn * 2 - 2) - channelPadding * 2) / channelColumn;
                         childAt.measure(MeasureSpec.makeMeasureSpec(channelWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(channelHeight, MeasureSpec.EXACTLY));
                     }
                 }
                 for (int groupChannelColumn : groupChannelColumns) {
                     if (groupChannelColumn > 0) {
-                        height += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * horizontalSpacing;
+                        height += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * channelHorizontalSpacing;
                     }
                 }
                 allChannelGroupsHeight = height;
@@ -345,6 +596,9 @@ public class ChannelView extends ScrollView {
                 int startRow = 0;
                 for (String aKeySet : channelContents.keySet()) {//遍历key值，设置标题名称
                     List<Channel> channelContent = channelContents.get(aKeySet);
+                    if (j == 0 && channelFixedCount > channelContent.size()) {
+                        throw new RuntimeException("固定频道数量不能大于已选频道数量");
+                    }
                     if (channelContent == null) {
                         channelContent = new ArrayList<>();
                     }
@@ -363,9 +617,13 @@ public class ChannelView extends ScrollView {
                         tipEdit = view.findViewById(R.id.tv_tip_edit);
                         tipEdit.setVisibility(VISIBLE);
                         tipEdit.setOnClickListener(this);
+                        tipEdit.setBackgroundResource(tipEditBackground);
+                        tipEdit.setTextColor(tipEditTextColor);
                         tipFinish = view.findViewById(R.id.tv_tip_finish);
                         tipFinish.setVisibility(INVISIBLE);
                         tipFinish.setOnClickListener(this);
+                        tipFinish.setBackgroundResource(tipEditBackground);
+                        tipFinish.setTextColor(tipEditTextColor);
                     }
                     ChannelAttr channelTitleAttr = new ChannelAttr();
                     channelTitleAttr.type = ChannelAttr.TITLE;
@@ -374,6 +632,14 @@ public class ChannelView extends ScrollView {
                     view.setTag(channelTitleAttr);
                     TextView tvTitle = view.findViewById(R.id.tv_title);
                     tvTitle.setText(aKeySet);
+                    tvTitle.setBackgroundResource(platesTitleBackground);
+                    tvTitle.setTextColor(platesTitleColor);
+                    if (platesTitleBold) {
+                        tvTitle.setTypeface(Typeface.DEFAULT_BOLD);
+                    }
+                    platesTitle.add(tvTitle);
+                    layoutParams.height = platesTitleHeight;
+                    view.setPadding(platesTitleLeftRightPadding, 0, platesTitleLeftRightPadding, 0);
                     addView(view, layoutParams);
                     channelTitleGroups.add(view);
                     ArrayList<View> channelGroup = new ArrayList<>();
@@ -389,21 +655,28 @@ public class ChannelView extends ScrollView {
                         textView.setTag(channelAttr);
                         textView.setText(channelContent.get(i).channelName);
                         textView.setGravity(Gravity.CENTER);
-                        textView.setBackgroundResource(channelNormalBackground);
-                        if (j == 0 && i <= channelFixedToPosition) {
-                            textView.setTextColor(Color.parseColor("#CCCCCC"));
-                            fixedTextView.add(textView);
-                            allTextView.remove(textView);
-                        }
-                        allTextView.add(textView);
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, channelTextSize);
                         if (j == 0) {
-                            textView.setOnLongClickListener(this);
-                            textView.setOnTouchListener(this);
+                            if (i < channelFixedCount) {
+                                textView.setTextColor(channelFixedTextColor);
+                                textView.setBackgroundResource(channelFixedBackground);
+                                fixedTextView.add(textView);
+                            } else {
+                                textView.setOnTouchListener(this);
+                                textView.setOnLongClickListener(this);
+                                textView.setTextColor(channelNormalTextColor);
+                                textView.setBackgroundResource(channelNormalBackground);
+                                allTextView.add(textView);
+                            }
+                        } else {
+                            textView.setTextColor(channelNormalTextColor);
+                            textView.setBackgroundResource(channelNormalBackground);
+                            allTextView.add(textView);
                         }
                         textView.setOnClickListener(this);
                         //设置每个频道的间距
                         LayoutParams params = new LayoutParams();
-                        int leftMargin = verticalSpacing, topMargin = horizontalSpacing, rightMargin = verticalSpacing, bottomMargin = horizontalSpacing;
+                        int leftMargin = channelVerticalSpacing, topMargin = channelHorizontalSpacing, rightMargin = channelVerticalSpacing, bottomMargin = channelHorizontalSpacing;
                         if (i % channelColumn == 0) {
                             leftMargin = 0;
                         }
@@ -456,7 +729,8 @@ public class ChannelView extends ScrollView {
                     if (isAccessDrag) {
                         ChannelAttr vTag = (ChannelAttr) v.getTag();
                         v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
-                        v.setBackgroundResource(channelSelectedBackground);
+                        v.setBackgroundResource(channelEditBackground);
+                        ((TextView) v).setTextColor(channelNormalTextColor);
                         isAccessDrag = false;
                         return true;
                     }
@@ -488,9 +762,10 @@ public class ChannelView extends ScrollView {
         private Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                View v = (View) msg.obj;
+                TextView v = (TextView) msg.obj;
                 v.bringToFront();
                 v.setBackgroundResource(channelFocusedBackground);
+                v.setTextColor(channelFocusedTextColor);
                 isAccessDrag = true;
             }
         };
@@ -509,7 +784,7 @@ public class ChannelView extends ScrollView {
                 ArrayList<View> channels = channelGroups.get(tag.groupIndex);
                 //如果点击的是我的频道组中的频道
                 if (tag.groupIndex == 0) {
-                    if (channelClickType == DELETE && channels.indexOf(v) > channelFixedToPosition) {
+                    if (channelClickType == DELETE && channels.indexOf(v) >= channelFixedCount) {
                         forwardSort(v, channels);
                         //减少我的频道
                         deleteMyChannel(v);
@@ -535,12 +810,13 @@ public class ChannelView extends ScrollView {
             v.bringToFront();
             ArrayList<View> views = channelGroups.get(0);
             int indexOf = views.indexOf(v);
-            if (indexOf > channelFixedToPosition) {
-                for (int i = channelFixedToPosition + 1; i < views.size(); i++) {
+            if (indexOf >= channelFixedCount) {
+                for (int i = channelFixedCount; i < views.size(); i++) {
                     if (i == indexOf) {
                         views.get(i).setBackgroundResource(channelFocusedBackground);
+                        ((TextView) views.get(i)).setTextColor(channelFocusedTextColor);
                     } else {
-                        views.get(i).setBackgroundResource(channelSelectedBackground);
+                        views.get(i).setBackgroundResource(channelEditBackground);
                     }
                 }
                 changeTip(true);
@@ -552,8 +828,8 @@ public class ChannelView extends ScrollView {
 
         private void edit() {
             ArrayList<View> views = channelGroups.get(0);
-            for (int i = channelFixedToPosition + 1; i < views.size(); i++) {
-                views.get(i).setBackgroundResource(channelSelectedBackground);
+            for (int i = channelFixedCount; i < views.size(); i++) {
+                views.get(i).setBackgroundResource(channelEditBackground);
             }
             changeTip(true);
         }
@@ -610,24 +886,24 @@ public class ChannelView extends ScrollView {
                     viewMove(1, channelHeight);
                 } else {
                     ChannelAttr firstMyChannelTag = (ChannelAttr) myChannels.get(0).getTag();
-                    tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, finalMyChannelTag.coordinate.y + channelHeight + horizontalSpacing * 2);
+                    tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, finalMyChannelTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
                     //我的频道多一行，下面的view往下移
-                    viewMove(1, channelHeight + horizontalSpacing * 2);
+                    viewMove(1, channelHeight + channelHorizontalSpacing * 2);
                 }
                 animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             } else {
-                tag.coordinate = new PointF(finalMyChannelTag.coordinate.x + channelWidth + verticalSpacing * 2, finalMyChannelTag.coordinate.y);
+                tag.coordinate = new PointF(finalMyChannelTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, finalMyChannelTag.coordinate.y);
                 animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             }
             if (channelClickType == DELETE) {
-                v.setBackgroundResource(channelSelectedBackground);
+                v.setBackgroundResource(channelEditBackground);
             }
             //该频道少一行，下面的view往上移
             if (channels.size() % channelColumn == 0) {
                 if (channels.size() == 0) {
                     viewMove(tag.groupIndex + 1, -channelHeight);
                 } else {
-                    viewMove(tag.groupIndex + 1, -channelHeight - horizontalSpacing * 2);
+                    viewMove(tag.groupIndex + 1, -channelHeight - channelHorizontalSpacing * 2);
                 }
             }
             tag.groupIndex = 0;
@@ -670,7 +946,7 @@ public class ChannelView extends ScrollView {
                 if (channelGroups.get(0).size() == 0) {
                     viewMove(1, -channelHeight);
                 } else {
-                    viewMove(1, -channelHeight - horizontalSpacing * 2);
+                    viewMove(1, -channelHeight - channelHorizontalSpacing * 2);
                 }
             }
             if (beLongChannels.size() % channelColumn == 1) {
@@ -678,11 +954,11 @@ public class ChannelView extends ScrollView {
                 if (beLongChannels.size() == 1) {
                     viewMove(belong + 1, channelHeight);
                 } else {
-                    viewMove(belong + 1, channelHeight + horizontalSpacing * 2);
+                    viewMove(belong + 1, channelHeight + channelHorizontalSpacing * 2);
                 }
-                newPointF = new PointF(tag.coordinate.x, finalChannelViewTag.coordinate.y + channelHeight + horizontalSpacing * 2);
+                newPointF = new PointF(tag.coordinate.x, finalChannelViewTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
             } else {
-                newPointF = new PointF(finalChannelViewTag.coordinate.x + channelWidth + verticalSpacing * 2, finalChannelViewTag.coordinate.y);
+                newPointF = new PointF(finalChannelViewTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, finalChannelViewTag.coordinate.y);
             }
             for (int i = 1; i < beLongChannels.size(); i++) {
                 View currentView = beLongChannels.get(i);
@@ -710,7 +986,7 @@ public class ChannelView extends ScrollView {
             }
             for (int groupChannelColumn : groupChannelColumns) {
                 if (groupChannelColumn > 0) {
-                    newAllChannelGroupsHeight += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * horizontalSpacing;
+                    newAllChannelGroupsHeight += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * channelHorizontalSpacing;
                 }
             }
             int changeHeight = newAllChannelGroupsHeight - allChannelGroupsHeight;
@@ -789,7 +1065,7 @@ public class ChannelView extends ScrollView {
             ChannelAttr vTag = (ChannelAttr) v.getTag();
             int vIndex = myChannels.indexOf(v);
             for (int i = 0; i < myChannels.size(); i++) {
-                if (i > channelFixedToPosition && i != vIndex) {
+                if (i >= channelFixedCount && i != vIndex) {
                     View iChannel = myChannels.get(i);
                     ChannelAttr iChannelTag = (ChannelAttr) iChannel.getTag();
                     int x1 = (int) iChannelTag.coordinate.x;
@@ -848,7 +1124,7 @@ public class ChannelView extends ScrollView {
                 channelClickType = NORMAL;
                 isEditState = false;
                 for (int i = 0; i < views.size(); i++) {
-                    if (i > channelFixedToPosition) {
+                    if (i >= channelFixedCount) {
                         views.get(i).setBackgroundResource(channelNormalBackground);
                     }
                 }

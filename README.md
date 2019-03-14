@@ -3,19 +3,13 @@
 
 ![](https://upload-images.jianshu.io/upload_images/6753190-9ef8bb620590ffad.gif?imageMogr2/auto-orient/strip)
 
-# 方法
+# 主要方法
 
 |名称|描述
 |---|---|
-|setFixedChannel(int toPosition)| 设置前toPosition+1个channel不能拖动，toPosition是数组下标
+|setChannelFixedCount(int channelFixedCount)| 设置固定频道数量
 |addPlate(String plateName, List<Channel> channelList)| 添加频道板块
 |inflateData()| 添加完频道板块之后，进行填充数据，要在addPlate方法之后调用
-|setChannelNormalBackground(@DrawableRes int channelNormalBackground)| 设置频道正常状态
-|setChannelSelectedBackground(@DrawableRes int channelSelectedBackground)| 设置频道已选择状态器
-|setChannelFocusedBackground(@DrawableRes int channelFocusedBackground)| 设置频道点击状态
-|setChannelFixedColor(@ColorInt int channelFixedColorRes)| 设置固定频道的颜色
-|getMyChannel()| 获取我的频道
-|setOnChannelItemClickListener(OnChannelListener onChannelListener)| 设置频道监听
 
 # OnChannelListener接口
 
@@ -33,20 +27,33 @@
 |channelPadding| 频道内间距
 |channelVerticalSpacing| 频道之间竖直方向的间隔距离
 |channelHorizontalSpacing| 频道之间水平方向的间隔距离
+|channelNormalBackground| 设置频道正常状态下背景
+|channelEditBackground| 设置频道编辑状态下背景
+|channelFocusedBackground| 设置频道编辑且点击状态下背景
+|channelNormalTextColor| 设置频道字体颜色
+|channelFixedCount| 设置固定频道个数
+|channelFixedTextColor| 设置固定频道的颜色
+|channelFixedBackground| 设置固定频道的背景
+|channelFocusedTextColor| 设置编辑且点击状态下频道字体颜色
+|channelTextSize| 设置频道字体大小
+|tipEditBackground| 设置编辑按键背景
+|platesTitleBackground| 设置频道板块标题背景
+|tipEditTextColor| 设置编辑按键颜色
+|platesTitleColor| 设置频道板块标题颜色
+|platesTitleBold| 设置频道板块标题是否加粗
+|tipEditTextSize| 设置编辑按键字体大小
+|platesTitleSize| 设置频道板块标题大小
+|platesTitleHeight| 频道板块title高度
+|platesTitleLeftRightPadding| 频道板块title左右padding
 
 # 示例
 
 在布局文件中：
 ```
 <com.cheng.channelview.ChannelView
-        android:id="@+id/channelView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:channelColumn="4"
-        app:channelHeight="40dp"
-        app:channelHorizontalSpacing="10dp"
-        app:channelPadding="10dp"
-        app:channelVerticalSpacing="5dp" />
+    android:id="@+id/channelView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
 ```
 在代码中：
 ```
@@ -107,14 +114,14 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
             recommendChannelList3.add(channel);
         }
 
-        channelView.setFixedChannel(2);
+        channelView.setChannelFixedCount(3);
         channelView.addPlate("我的频道", myChannelList);
         channelView.addPlate("推荐频道", recommendChannelList1);
         channelView.addPlate("国内", recommendChannelList2);
         channelView.addPlate("国外", recommendChannelList3);
         channelView.inflateData();
         channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
-        channelView.setChannelSelectedBackground(R.drawable.bg_channel_selected);
+        channelView.setChannelEditBackground(R.drawable.bg_channel_edit);
         channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
         channelView.setOnChannelItemClickListener(this);
     }
@@ -145,6 +152,10 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 > 2. 可通过两种方式编辑频道，长按编辑和点击按键主动编辑
 > 3. 设置频道额外属性（可用于保存频道Id或者设置其它信息）
 > 4. 修复setChannelFixedColor方法和setChannelNormalBackground方法无效bug
+
+# v1.0.4更新说明
+> 1. 简化设置固定频道方法
+> 2. 增强自定义功能
 
 # 项目详细解读
 
