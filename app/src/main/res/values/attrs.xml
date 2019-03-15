@@ -24,5 +24,13 @@
         <attr name="platesTitleSize" format="dimension" />
         <attr name="platesTitleHeight" format="dimension" />
         <attr name="platesTitleLeftRightPadding" format="dimension" />
+        <attr name="otherSubTitleBackground" format="reference" />
+        <attr name="otherSubTitleTextColor" format="color" />
+        <attr name="otherSubTitleTextSize" format="dimension" />
+        <attr name="subTitleBackground" format="reference" />
+        <attr name="subTitleTextColor" format="color" />
+        <attr name="subTitleTextSize" format="dimension" />
+        <attr name="subTitleName" format="string" />
+        <attr name="otherSubTitleName" format="string" />
     </declare-styleable>
 </resources>

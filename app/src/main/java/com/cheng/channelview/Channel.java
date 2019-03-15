@@ -8,6 +8,7 @@ public class Channel {
     String channelName;
     int channelBelong;
     Object obj;
+    int code = -1;
 
     public Channel(String channelName) {
         this(channelName, 1, null);

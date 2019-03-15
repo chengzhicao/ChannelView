@@ -7,16 +7,18 @@
 
 |名称|描述
 |---|---|
-|setChannelFixedCount(int channelFixedCount)| 设置固定频道数量
-|addPlate(String plateName, List<Channel> channelList)| 添加频道板块
-|inflateData()| 添加完频道板块之后，进行填充数据，要在addPlate方法之后调用
+|void setChannelFixedCount(int channelFixedCount)| 设置固定频道数量
+|void addPlate(String plateName, List<Channel> channelList)| 添加频道板块
+|void inflateData()| 添加完频道板块之后，进行填充数据，要在addPlate方法之后调用
+|boolean isChange()| 频道序列是否发生变化
 
 # OnChannelListener接口
 
 |名称|描述
 |---|---|
-|channelItemClick(int position, Channel channel)| 频道点击回调
-|channelFinish(List<Channel> channelList)| 频道编辑完成回调
+|void channelItemClick(int position, Channel channel)| 频道点击回调
+|void channelEditFinish(List<Channel> channelList)| 频道编辑完成回调
+|void channelEditStart()| 开始编辑频道
 
 # 属性
 
@@ -45,6 +47,14 @@
 |platesTitleSize| 设置频道板块标题大小
 |platesTitleHeight| 频道板块title高度
 |platesTitleLeftRightPadding| 频道板块title左右padding
+|otherSubTitleBackground| 设置其它频道板块的副标题背景
+|otherSubTitleTextColor| 设置其它频道板块的副标题颜色
+|otherSubTitleTextSize| 设置其它频道板块的副标题字体大小
+|subTitleBackground| 设置已选频道板块的副标题背景
+|subTitleTextColor| 设置已选频道板块的副标题颜色
+|subTitleTextSize| 设置已选频道板块的副标题字体大小
+|subTitleName| 设置已选频道的副标题
+|otherSubTitleName| 设置其它未选频道的副标题
 
 # 示例
 
@@ -133,9 +143,14 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
     }
 
     @Override
-    public void channelFinish(List<Channel> channelList) {
+    public void channelEditFinish(List<Channel> channelList) {
         Log.i(TAG, channelList.toString());
         Log.i(TAG, channelView.getMyChannel().toString());
+    }
+    
+    @Override
+    public void channelEditStart() {
+
     }
 }
 ```
@@ -147,15 +162,14 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 # v1.0.2更新说明
 > 修复删除我的频道后该频道仍显示删除icon的问题
 
-# v1.0.3更新说明
+# v1.0.4更新说明
 > 1. 简化频道设置方法
 > 2. 可通过两种方式编辑频道，长按编辑和点击按键主动编辑
 > 3. 设置频道额外属性（可用于保存频道Id或者设置其它信息）
-> 4. 修复setChannelFixedColor方法和setChannelNormalBackground方法无效bug
-
-# v1.0.4更新说明
-> 1. 简化设置固定频道方法
-> 2. 增强自定义功能
+> 4. 修复部分设置背景方法无效bug
+> 5. 简化设置固定频道方法
+> 6. 增强自定义功能
+> 7. 增加差异性检测功能，判断是否编辑过频道
 
 # 项目详细解读
 

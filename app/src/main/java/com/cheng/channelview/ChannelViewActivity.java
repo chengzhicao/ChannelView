@@ -83,8 +83,13 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
     }
 
     @Override
-    public void channelFinish(List<Channel> channelList) {
+    public void channelEditFinish(List<Channel> channelList) {
         Log.i(TAG, channelList.toString());
         Log.i(TAG, channelView.getMyChannel().toString());
+    }
+
+    @Override
+    public void channelEditStart() {
+
     }
 }

@@ -103,6 +103,22 @@ public class ChannelView extends ScrollView {
     @ColorInt
     private int platesTitleColor;
 
+    @DrawableRes
+    private int otherSubTitleBackground;
+
+    @ColorInt
+    private int otherSubTitleTextColor;
+
+    private int otherSubTitleTextSize;
+
+    @DrawableRes
+    private int subTitleBackground;
+
+    @ColorInt
+    private int subTitleTextColor;
+
+    private int subTitleTextSize;
+
     private boolean platesTitleBold;
 
     private int platesTitleSize;
@@ -116,6 +132,8 @@ public class ChannelView extends ScrollView {
     private List<TextView> allTextView = new ArrayList<>();
 
     private List<TextView> platesTitle = new ArrayList<>();
+
+    private List<TextView> otherSubTitles = new ArrayList<>();
 
     public ChannelView(Context context) {
         this(context, null);
@@ -152,7 +170,21 @@ public class ChannelView extends ScrollView {
         tipEditTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_tipEditTextSize, getResources().getDimensionPixelSize(R.dimen.channelTextSize));
         platesTitleHeight = typedArray.getDimensionPixelSize(R.styleable.ChannelView_platesTitleHeight, getResources().getDimensionPixelSize(R.dimen.platesTitleHeight));
         platesTitleLeftRightPadding = typedArray.getDimensionPixelSize(R.styleable.ChannelView_platesTitleLeftRightPadding, getResources().getDimensionPixelSize(R.dimen.platesTitleLeftRightPadding));
+        otherSubTitleBackground = typedArray.getResourceId(R.styleable.ChannelView_otherSubTitleBackground, R.drawable.bg_channel_transparent);
+        otherSubTitleTextColor = typedArray.getColor(R.styleable.ChannelView_otherSubTitleTextColor, getResources().getColor(R.color.subTitleTextColor));
+        otherSubTitleTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_otherSubTitleTextSize, getResources().getDimensionPixelSize(R.dimen.subTitleTextSize));
+        subTitleBackground = typedArray.getResourceId(R.styleable.ChannelView_subTitleBackground, R.drawable.bg_channel_transparent);
+        subTitleTextColor = typedArray.getColor(R.styleable.ChannelView_subTitleTextColor, getResources().getColor(R.color.subTitleTextColor));
+        subTitleTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_subTitleTextSize, getResources().getDimensionPixelSize(R.dimen.subTitleTextSize));
+        subTitleName = typedArray.getString(R.styleable.ChannelView_subTitleName);
+        otherSubTitleName = typedArray.getString(R.styleable.ChannelView_otherSubTitleName);
         typedArray.recycle();
+        if (subTitleName == null) {
+            subTitleName = "";
+        }
+        if (otherSubTitleName == null) {
+            otherSubTitleName = "";
+        }
         if (channelColumn < 1) {
             channelColumn = 1;
         }
@@ -174,7 +206,7 @@ public class ChannelView extends ScrollView {
         if (channelLayout == null) {
             return;
         }
-        if (channelLayout.channelGroups.size() > 0) {
+        if (channelLayout.channelGroups.size() > 0 && channelLayout.channelGroups.get(0) != null) {
             if (channelFixedCount > channelLayout.channelGroups.get(0).size()) {
                 throw new RuntimeException("固定频道数量不能大于已选频道数量");
             }
@@ -194,6 +226,12 @@ public class ChannelView extends ScrollView {
             if (channelContents.size() != 0) {
                 for (Channel channel : channelList) {
                     channel.channelBelong = channelContents.size();
+                }
+            } else {
+                myChannelCode = new int[channelList.size()];
+                for (int i = 0; i < channelList.size(); i++) {
+                    channelList.get(i).code = i;
+                    myChannelCode[i] = i;
                 }
             }
             channelContents.put(plateName, channelList);
@@ -405,6 +443,122 @@ public class ChannelView extends ScrollView {
         }
     }
 
+    /**
+     * 设置其它频道板块的副标题背景
+     *
+     * @param otherSubTitleBackground
+     */
+    public void setOtherSubTitleBackground(@DrawableRes int otherSubTitleBackground) {
+        this.otherSubTitleBackground = otherSubTitleBackground;
+        for (TextView otherSubTitle : otherSubTitles) {
+            otherSubTitle.setBackgroundResource(otherSubTitleBackground);
+        }
+    }
+
+    /**
+     * 设置其它频道板块的副标题颜色
+     *
+     * @param otherSubTitleTextColor
+     */
+    public void setOtherSubTitleTextColor(@ColorInt int otherSubTitleTextColor) {
+        this.otherSubTitleTextColor = otherSubTitleTextColor;
+        for (TextView otherSubTitle : otherSubTitles) {
+            otherSubTitle.setTextColor(otherSubTitleTextColor);
+        }
+    }
+
+    /**
+     * 设置其它频道板块的副标题字体大小
+     *
+     * @param unit
+     * @param otherSubTitleTextSize
+     */
+    public void setOtherSubTitleTextSize(int unit, int otherSubTitleTextSize) {
+        this.otherSubTitleTextSize = (int) TypedValue.applyDimension(unit, otherSubTitleTextSize, getResources().getDisplayMetrics());
+        for (TextView otherSubTitle : otherSubTitles) {
+            otherSubTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.otherSubTitleTextSize);
+        }
+    }
+
+    public void setOtherSubTitleTextSizeRes(@DimenRes int otherSubTitleTextSize) {
+        this.otherSubTitleTextSize = getResources().getDimensionPixelSize(otherSubTitleTextSize);
+        for (TextView otherSubTitle : otherSubTitles) {
+            otherSubTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.otherSubTitleTextSize);
+        }
+    }
+
+    /**
+     * 设置已选频道板块的副标题背景
+     *
+     * @param subTitleBackground
+     */
+    public void setSubTitleBackground(@DrawableRes int subTitleBackground) {
+        this.subTitleBackground = subTitleBackground;
+        if (channelLayout != null && channelLayout.subTitle != null) {
+            channelLayout.subTitle.setBackgroundResource(subTitleBackground);
+        }
+    }
+
+    /**
+     * 设置已选频道板块的副标题颜色
+     *
+     * @param subTitleTextColor
+     */
+    public void setSubTitleTextColor(@ColorInt int subTitleTextColor) {
+        this.subTitleTextColor = subTitleTextColor;
+        if (channelLayout != null && channelLayout.subTitle != null) {
+            channelLayout.subTitle.setTextColor(subTitleTextColor);
+        }
+    }
+
+    /**
+     * 设置已选频道板块的副标题字体大小
+     *
+     * @param unit
+     * @param subTitleTextSize
+     */
+    public void setSubTitleTextSize(int unit, int subTitleTextSize) {
+        this.subTitleTextSize = (int) TypedValue.applyDimension(unit, subTitleTextSize, getResources().getDisplayMetrics());
+        if (channelLayout != null && channelLayout.subTitle != null) {
+            channelLayout.subTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.subTitleTextSize);
+        }
+    }
+
+    public void setSubTitleTextSizeRes(@DimenRes int subTitleTextSize) {
+        this.subTitleTextSize = getResources().getDimensionPixelSize(subTitleTextSize);
+        if (channelLayout != null && channelLayout.subTitle != null) {
+            channelLayout.subTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.subTitleTextSize);
+        }
+    }
+
+    /**
+     * 设置已选频道的副标题
+     *
+     * @param subTitleName
+     */
+    public void setSubTitleName(String subTitleName) {
+        this.subTitleName = subTitleName;
+        if (channelLayout != null && channelLayout.subTitle != null) {
+            channelLayout.subTitle.setText(subTitleName);
+        }
+    }
+
+    private String subTitleName = "";
+
+    private String otherSubTitleName = "";
+
+    /**
+     * 设置其它未选频道的副标题
+     *
+     * @param otherSubTitleName
+     */
+    public void setOtherSubTitleName(String otherSubTitleName) {
+        this.otherSubTitleName = otherSubTitleName;
+        for (TextView otherSubTitle : otherSubTitles) {
+            otherSubTitle.setText(otherSubTitleName);
+        }
+    }
+
     private OnChannelListener onChannelListener;
 
     /**
@@ -428,7 +582,7 @@ public class ChannelView extends ScrollView {
      */
     public List<Channel> getMyChannel() {
         List<Channel> channels = new ArrayList<>();
-        if (channelLayout != null && channelLayout.channelGroups.size() > 0) {
+        if (channelLayout != null && channelLayout.channelGroups.size() > 0 && channelLayout.channelGroups.get(0) != null) {
             for (View view : channelLayout.channelGroups.get(0)) {
                 channels.add(((ChannelAttr) view.getTag()).channel);
             }
@@ -436,10 +590,53 @@ public class ChannelView extends ScrollView {
         return channels;
     }
 
+    private int[] myChannelCode;
+
+    /**
+     * 频道序列是否发生变化
+     *
+     * @return
+     */
+    public boolean isChange() {
+        if (channelLayout != null && channelLayout.channelGroups.size() > 0 && channelLayout.channelGroups.get(0) != null) {
+            int[] nowMyChannelCode = new int[channelLayout.channelGroups.get(0).size()];
+            for (int i = 0; i < channelLayout.channelGroups.get(0).size(); i++) {
+                ChannelAttr channelAttr = (ChannelAttr) channelLayout.channelGroups.get(0).get(i).getTag();
+                nowMyChannelCode[i] = channelAttr.channel.code;
+            }
+            if (myChannelCode.length == nowMyChannelCode.length) {
+                for (int i = 0; i < myChannelCode.length; i++) {
+                    if (myChannelCode[i] != nowMyChannelCode[i]) {
+                        return true;
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public interface OnChannelListener {
+        /**
+         * 频道点击
+         *
+         * @param position
+         * @param channel
+         */
         void channelItemClick(int position, Channel channel);
 
-        void channelFinish(List<Channel> channelList);
+        /**
+         * 编辑频道完成
+         *
+         * @param channelList
+         */
+        void channelEditFinish(List<Channel> channelList);
+
+        /**
+         * 开始编辑频道
+         */
+        void channelEditStart();
     }
 
     public void setOnChannelItemClickListener(OnChannelListener onChannelListener) {
@@ -494,7 +691,7 @@ public class ChannelView extends ScrollView {
          */
         private int allChannelGroupsHeight;
 
-        private TextView tipEdit, tipFinish;
+        private TextView tipEdit, tipFinish, subTitle;
 
         /**
          * 动态高度
@@ -613,6 +810,7 @@ public class ChannelView extends ScrollView {
                     Spec columnSpec = GridLayout.spec(0, channelColumn);
                     LayoutParams layoutParams = new LayoutParams(rowSpec, columnSpec);
                     View view = LayoutInflater.from(mContext).inflate(R.layout.cgl_my_channel, null);
+                    TextView otherSubTitle = view.findViewById(R.id.tv_sub_title);
                     if (j == 0) {
                         tipEdit = view.findViewById(R.id.tv_tip_edit);
                         tipEdit.setVisibility(VISIBLE);
@@ -624,6 +822,17 @@ public class ChannelView extends ScrollView {
                         tipFinish.setOnClickListener(this);
                         tipFinish.setBackgroundResource(tipEditBackground);
                         tipFinish.setTextColor(tipEditTextColor);
+                        subTitle = otherSubTitle;
+                        subTitle.setText(subTitleName);
+                        subTitle.setTextColor(subTitleTextColor);
+                        subTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, subTitleTextSize);
+                        subTitle.setBackgroundResource(subTitleBackground);
+                    } else {
+                        otherSubTitle.setText(otherSubTitleName);
+                        otherSubTitle.setTextColor(otherSubTitleTextColor);
+                        otherSubTitle.setBackgroundResource(otherSubTitleBackground);
+                        otherSubTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, otherSubTitleTextSize);
+                        otherSubTitles.add(otherSubTitle);
                     }
                     ChannelAttr channelTitleAttr = new ChannelAttr();
                     channelTitleAttr.type = ChannelAttr.TITLE;
@@ -774,10 +983,13 @@ public class ChannelView extends ScrollView {
         public void onClick(View v) {
             if (v == tipEdit) {
                 edit();
+                if (onChannelListener != null) {
+                    onChannelListener.channelEditStart();
+                }
             } else if (v == tipFinish) {//点击完成按钮时
                 changeTip(false);
                 if (onChannelListener != null) {
-                    onChannelListener.channelFinish(getMyChannel());
+                    onChannelListener.channelEditFinish(getMyChannel());
                 }
             } else {
                 ChannelAttr tag = (ChannelAttr) v.getTag();
