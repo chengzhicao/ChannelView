@@ -1,4 +1,4 @@
-package com.cheng.sample;
+package com.cheng.channel;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -15,6 +15,7 @@ import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -921,6 +922,7 @@ public class ChannelView extends ScrollView {
                 downX = event.getRawX();
                 downY = event.getRawY();
                 if (isEditState) {
+                    Log.i("jfiowejoigwieg", "down");
                     setTime(v);
                 }
             }
@@ -932,10 +934,12 @@ public class ChannelView extends ScrollView {
                     channelDrag(v, event);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    Log.i("jfiowejoigwieg", "up...cancel");
                     if (thread != null && thread.isAlive() && !thread.isInterrupted()) {
                         thread.interrupt();
                     }
                     if (isAccessDrag) {
+                        Log.i("jfiowejoigwieg", "恢复");
                         ChannelAttr vTag = (ChannelAttr) v.getTag();
                         v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
                         v.setBackgroundResource(channelEditBackground);
@@ -949,15 +953,19 @@ public class ChannelView extends ScrollView {
         }
 
         private void setTime(final View v) {
+            Log.i("jfiowejoigwieg", "要执行了");
             thread = new Thread() {
                 @Override
                 public void run() {
                     try {
+                        Log.i("jfiowejoigwieg", "正在执行");
                         sleep(MIN_TIME_INTERVAL);
                     } catch (InterruptedException e) {
+                        Log.i("jfiowejoigwieg", "取消了");
                         e.printStackTrace();
                         return;
                     }
+                    Log.i("jfiowejoigwieg", "有背景了");
                     Message message = new Message();
                     message.obj = v;
                     handler.sendMessage(message);

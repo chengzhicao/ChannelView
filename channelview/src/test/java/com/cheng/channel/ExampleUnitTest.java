@@ -1,4 +1,4 @@
-package com.cheng.sample;
+package com.cheng.channel;
 
 import org.junit.Test;
 

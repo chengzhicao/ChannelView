@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.cheng.channel.Channel;
+import com.cheng.channel.ChannelView;
+
 import java.util.ArrayList;
 import java.util.List;
 
