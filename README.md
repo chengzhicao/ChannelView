@@ -3,6 +3,35 @@
 
 ![](https://upload-images.jianshu.io/upload_images/6753190-9ef8bb620590ffad.gif?imageMogr2/auto-orient/strip)
 
+# 使用[![](https://jitpack.io/v/chengzhicao/ChannelView.svg)](https://jitpack.io/#chengzhicao/ChannelView)
+
+Add it in your root build.gradle at the end of repositories:
+
+```
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+Add the dependency
+
+```
+dependencies {
+        implementation 'com.github.chengzhicao:ChannelView:v1.0.6'
+}
+```
+
+# v1.0.6说明
+> 1. 简化频道设置方法
+> 2. 可通过两种方式编辑频道，长按编辑和点击按键主动编辑
+> 3. 设置频道额外属性（可用于保存频道Id或者设置其它信息）
+> 4. 简化设置固定频道方法
+> 5. 增强自定义功能
+> 6. 判断是否编辑过频道
+
 # 主要方法
 
 |名称|描述
@@ -12,7 +41,7 @@
 |void inflateData()| 添加完频道板块之后，进行填充数据，要在addPlate方法之后调用
 |boolean isChange()| 频道序列是否发生变化
 
-# OnChannelListener接口
+# 接口
 
 |名称|描述
 |---|---|
@@ -130,9 +159,6 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
         channelView.addPlate("国内", recommendChannelList2);
         channelView.addPlate("国外", recommendChannelList3);
         channelView.inflateData();
-        channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
-        channelView.setChannelEditBackground(R.drawable.bg_channel_edit);
-        channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
         channelView.setOnChannelItemClickListener(this);
     }
 
@@ -154,22 +180,6 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
     }
 }
 ```
-
-
-# v1.0.1更新说明
-> 修复拖拽时出现的崩溃bug
-
-# v1.0.2更新说明
-> 修复删除我的频道后该频道仍显示删除icon的问题
-
-# v1.0.4更新说明
-> 1. 简化频道设置方法
-> 2. 可通过两种方式编辑频道，长按编辑和点击按键主动编辑
-> 3. 设置频道额外属性（可用于保存频道Id或者设置其它信息）
-> 4. 修复部分设置背景方法无效bug
-> 5. 简化设置固定频道方法
-> 6. 增强自定义功能
-> 7. 增加差异性检测功能，判断是否编辑过频道
 
 # 项目详细解读
 
