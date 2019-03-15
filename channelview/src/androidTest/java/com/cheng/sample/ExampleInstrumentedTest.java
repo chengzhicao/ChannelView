@@ -1,4 +1,4 @@
-package com.cheng.channelview;
+package com.cheng.sample;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.cheng.channelview", appContext.getPackageName());
+        assertEquals("com.cheng.channelview.test", appContext.getPackageName());
     }
 }

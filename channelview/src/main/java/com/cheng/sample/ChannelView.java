@@ -1,4 +1,4 @@
-package com.cheng.channelview;
+package com.cheng.sample;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -716,7 +716,7 @@ public class ChannelView extends ScrollView {
         /**
          * 可允许拖拽的最小间隔时间
          */
-        private final int MIN_TIME_INTERVAL = 80;
+        private final int MIN_TIME_INTERVAL = 65;
 
         public ChannelLayout(Context context) {
             this(context, null);

@@ -1,4 +1,4 @@
-package com.cheng.channelview;
+package com.cheng.sample;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;

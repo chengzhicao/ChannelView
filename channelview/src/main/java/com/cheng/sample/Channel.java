@@ -1,4 +1,4 @@
-package com.cheng.channelview;
+package com.cheng.sample;
 
 /**
  * @author caochengzhi

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ChannelViewActivity">
 
-    <com.cheng.channelview.ChannelView
+    <com.cheng.sample.ChannelView
         android:id="@+id/channelView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

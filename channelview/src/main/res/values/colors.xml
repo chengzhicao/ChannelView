@@ -3,4 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="channelNormalTextColor">#6D6D6D</color>
+    <color name="channelFixedTextColor">#CCCCCC</color>
+    <color name="subTitleTextColor">#A0A3AF</color>
 </resources>
