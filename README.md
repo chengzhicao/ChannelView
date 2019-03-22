@@ -20,11 +20,16 @@ Add the dependency
 
 ```
 dependencies {
-        implementation 'com.github.chengzhicao:ChannelView:v1.0.6'
+        implementation 'com.github.chengzhicao:ChannelView:v1.0.7'
 }
 ```
 
 **建议将compileSdkVersion改为28，低于28会出现编译问题**
+
+# v1.0.7说明
+> 1. 修复bug
+> 2. 增加获取其他频道内容方法
+> 3. 增加3种attr属性
 
 # v1.0.6说明
 > 1. 可添加多个频道板块
