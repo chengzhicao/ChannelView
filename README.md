@@ -43,6 +43,8 @@ dependencies {
 |void addPlate(String plateName, List<Channel> channelList)| 添加频道板块
 |void inflateData()| 添加完频道板块之后，进行填充数据，要在addPlate方法之后调用
 |boolean isChange()| 频道序列是否发生变化
+|List<Channel> getMyChannel()| 获取我的频道内容
+|List<List<Channel>> getOtherChannel()| 获取其他频道内容
 
 # 接口
 
@@ -71,22 +73,25 @@ dependencies {
 |channelFocusedTextColor| 设置编辑且点击状态下频道字体颜色
 |channelTextSize| 设置频道字体大小
 |tipEditBackground| 设置编辑按键背景
-|platesTitleBackground| 设置频道板块标题背景
 |tipEditTextColor| 设置编辑按键颜色
-|platesTitleColor| 设置频道板块标题颜色
-|platesTitleBold| 设置频道板块标题是否加粗
 |tipEditTextSize| 设置编辑按键字体大小
+|tipFinishBackground| 设置完成按键背景
+|tipFinishTextColor| 设置完成按键颜色
+|tipFinishTextSize| 设置完成按键字体大小
+|platesTitleBold| 设置频道板块标题是否加粗
+|platesTitleBackground| 设置频道板块标题背景
+|platesTitleColor| 设置频道板块标题颜色
 |platesTitleSize| 设置频道板块标题大小
 |platesTitleHeight| 频道板块title高度
 |platesTitleLeftRightPadding| 频道板块title左右padding
 |otherSubTitleBackground| 设置其它频道板块的副标题背景
 |otherSubTitleTextColor| 设置其它频道板块的副标题颜色
 |otherSubTitleTextSize| 设置其它频道板块的副标题字体大小
+|otherSubTitleName| 设置其它未选频道的副标题
 |subTitleBackground| 设置已选频道板块的副标题背景
 |subTitleTextColor| 设置已选频道板块的副标题颜色
 |subTitleTextSize| 设置已选频道板块的副标题字体大小
 |subTitleName| 设置已选频道的副标题
-|otherSubTitleName| 设置其它未选频道的副标题
 
 # 示例
 

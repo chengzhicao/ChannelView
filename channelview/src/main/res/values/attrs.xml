@@ -32,5 +32,8 @@
         <attr name="subTitleTextSize" format="dimension" />
         <attr name="subTitleName" format="string" />
         <attr name="otherSubTitleName" format="string" />
+        <attr name="tipFinishBackground" format="reference" />
+        <attr name="tipFinishTextColor" format="color" />
+        <attr name="tipFinishTextSize" format="dimension" />
     </declare-styleable>
 </resources>

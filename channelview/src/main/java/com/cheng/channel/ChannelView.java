@@ -96,10 +96,16 @@ public class ChannelView extends ScrollView {
     private int tipEditBackground;
 
     @DrawableRes
+    private int tipFinishBackground;
+
+    @DrawableRes
     private int platesTitleBackground;
 
     @ColorInt
     private int tipEditTextColor;
+
+    @ColorInt
+    private int tipFinishTextColor;
 
     @ColorInt
     private int platesTitleColor;
@@ -125,6 +131,8 @@ public class ChannelView extends ScrollView {
     private int platesTitleSize;
 
     private int tipEditTextSize;
+
+    private int tipFinishTextSize;
 
     private int channelTextSize;
 
@@ -179,6 +187,9 @@ public class ChannelView extends ScrollView {
         subTitleTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_subTitleTextSize, getResources().getDimensionPixelSize(R.dimen.subTitleTextSize));
         subTitleName = typedArray.getString(R.styleable.ChannelView_subTitleName);
         otherSubTitleName = typedArray.getString(R.styleable.ChannelView_otherSubTitleName);
+        tipFinishBackground = typedArray.getResourceId(R.styleable.ChannelView_tipFinishBackground, R.drawable.bg_channel_transparent);
+        tipFinishTextColor = typedArray.getColor(R.styleable.ChannelView_tipFinishTextColor, getResources().getColor(R.color.channelNormalTextColor));
+        tipFinishTextSize = typedArray.getDimensionPixelSize(R.styleable.ChannelView_tipFinishTextSize, getResources().getDimensionPixelSize(R.dimen.channelTextSize));
         typedArray.recycle();
         if (subTitleName == null) {
             subTitleName = "";
@@ -369,9 +380,20 @@ public class ChannelView extends ScrollView {
      */
     public void setTipEditBackground(@DrawableRes int tipEditBackground) {
         this.tipEditBackground = tipEditBackground;
-        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+        if (channelLayout != null && channelLayout.tipEdit != null) {
             channelLayout.tipEdit.setBackgroundResource(tipEditBackground);
-            channelLayout.tipFinish.setBackgroundResource(tipEditBackground);
+        }
+    }
+
+    /**
+     * 设置完成按键背景
+     *
+     * @param tipFinishBackground
+     */
+    public void setTipFinishBackground(@DrawableRes int tipFinishBackground) {
+        this.tipFinishBackground = tipFinishBackground;
+        if (channelLayout != null && channelLayout.tipFinish != null) {
+            channelLayout.tipFinish.setBackgroundResource(tipFinishBackground);
         }
     }
 
@@ -382,9 +404,20 @@ public class ChannelView extends ScrollView {
      */
     public void setTipEditTextColor(@ColorInt int tipEditTextColor) {
         this.tipEditTextColor = tipEditTextColor;
-        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+        if (channelLayout != null && channelLayout.tipEdit != null) {
             channelLayout.tipEdit.setTextColor(tipEditTextColor);
-            channelLayout.tipFinish.setTextColor(tipEditTextColor);
+        }
+    }
+
+    /**
+     * 设置完成按键颜色
+     *
+     * @param tipFinishTextColor
+     */
+    public void setTipFinishTextColor(@ColorInt int tipFinishTextColor) {
+        this.tipFinishTextColor = tipFinishTextColor;
+        if (channelLayout != null && channelLayout.tipFinish != null) {
+            channelLayout.tipFinish.setTextColor(tipFinishTextColor);
         }
     }
 
@@ -430,19 +463,38 @@ public class ChannelView extends ScrollView {
      */
     public void setTipEditTextSize(int unit, int tipEditTextSize) {
         this.tipEditTextSize = (int) TypedValue.applyDimension(unit, tipEditTextSize, getResources().getDisplayMetrics());
-        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+        if (channelLayout != null && channelLayout.tipEdit != null) {
             channelLayout.tipEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
-            channelLayout.tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
         }
     }
 
     public void setTipEditTextSizeRes(@DimenRes int tipEditTextSize) {
         this.tipEditTextSize = getResources().getDimensionPixelSize(tipEditTextSize);
-        if (channelLayout != null && channelLayout.tipEdit != null && channelLayout.tipFinish != null) {
+        if (channelLayout != null && channelLayout.tipEdit != null) {
             channelLayout.tipEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
-            channelLayout.tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipEditTextSize);
         }
     }
+
+    /**
+     * 设置完成按键字体大小
+     *
+     * @param unit
+     * @param tipFinishTextSize
+     */
+    public void setTipFinishTextSize(int unit, int tipFinishTextSize) {
+        this.tipFinishTextSize = (int) TypedValue.applyDimension(unit, tipFinishTextSize, getResources().getDisplayMetrics());
+        if (channelLayout != null && channelLayout.tipFinish != null) {
+            channelLayout.tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipFinishTextSize);
+        }
+    }
+
+    public void setTipFinishTextSizeRes(@DimenRes int tipFinishTextSize) {
+        this.tipFinishTextSize = getResources().getDimensionPixelSize(tipFinishTextSize);
+        if (channelLayout != null && channelLayout.tipFinish != null) {
+            channelLayout.tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, this.tipFinishTextSize);
+        }
+    }
+
 
     /**
      * 设置其它频道板块的副标题背景
@@ -589,6 +641,26 @@ public class ChannelView extends ScrollView {
             }
         }
         return channels;
+    }
+
+    /**
+     * 获取其他频道
+     *
+     * @return
+     */
+    public List<List<Channel>> getOtherChannel() {
+        List<List<Channel>> otherChannels = new ArrayList<>();
+        if (channelLayout != null && channelLayout.channelGroups.size() > 0) {
+            int len = channelLayout.channelGroups.size();
+            for (int i = 1; i < len; i++) {
+                List<Channel> channels = new ArrayList<>();
+                for (View view : channelLayout.channelGroups.get(i)) {
+                    channels.add(((ChannelAttr) view.getTag()).channel);
+                }
+                otherChannels.add(channels);
+            }
+        }
+        return otherChannels;
     }
 
     private int[] myChannelCode;
@@ -818,11 +890,13 @@ public class ChannelView extends ScrollView {
                         tipEdit.setOnClickListener(this);
                         tipEdit.setBackgroundResource(tipEditBackground);
                         tipEdit.setTextColor(tipEditTextColor);
+                        tipEdit.setTextSize(TypedValue.COMPLEX_UNIT_PX, tipEditTextSize);
                         tipFinish = view.findViewById(R.id.tv_tip_finish);
                         tipFinish.setVisibility(INVISIBLE);
                         tipFinish.setOnClickListener(this);
-                        tipFinish.setBackgroundResource(tipEditBackground);
-                        tipFinish.setTextColor(tipEditTextColor);
+                        tipFinish.setBackgroundResource(tipFinishBackground);
+                        tipFinish.setTextColor(tipFinishTextColor);
+                        tipFinish.setTextSize(TypedValue.COMPLEX_UNIT_PX, tipFinishTextSize);
                         subTitle = otherSubTitle;
                         subTitle.setText(subTitleName);
                         subTitle.setTextColor(subTitleTextColor);
@@ -842,6 +916,7 @@ public class ChannelView extends ScrollView {
                     view.setTag(channelTitleAttr);
                     TextView tvTitle = view.findViewById(R.id.tv_title);
                     tvTitle.setText(aKeySet);
+                    tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, platesTitleSize);
                     tvTitle.setBackgroundResource(platesTitleBackground);
                     tvTitle.setTextColor(platesTitleColor);
                     if (platesTitleBold) {
