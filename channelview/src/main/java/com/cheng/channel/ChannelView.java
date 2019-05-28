@@ -15,7 +15,6 @@ import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -203,7 +202,18 @@ public class ChannelView extends ScrollView {
         if (channelFixedCount < 0) {
             channelFixedCount = 0;
         }
+        maxAccessDrag = context.getResources().getDisplayMetrics().density * DRAG_THRESHOLD + 0.5f;
     }
+
+    /**
+     * 可允许拖拽的阈值(单位为dp)
+     */
+    private final int DRAG_THRESHOLD = 5;
+
+    /**
+     * 触摸频道进行move时，当达到该值时可允许频道拖拽
+     */
+    private float maxAccessDrag;
 
     /**
      * 设置固定频道个数
@@ -990,14 +1000,19 @@ public class ChannelView extends ScrollView {
             }
         }
 
+        /**
+         * 拖拽时距离点击时的最远距离
+         */
+        private double maxDistanceToDownPosition;
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
 //            //如果点击的是我的频道组中的频道
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                downX = event.getRawX();
-                downY = event.getRawY();
+                maxDistanceToDownPosition = 0;
+                downX = dragX = event.getRawX();
+                downY = dragY = event.getRawY();
                 if (isEditState) {
-                    Log.i("jfiowejoigwieg", "down");
                     setTime(v);
                 }
             }
@@ -1006,21 +1021,25 @@ public class ChannelView extends ScrollView {
                     //手移动时拖动频道
                     //请求ScrollView不要拦截MOVE事件，交给TextView处理
                     requestDisallowInterceptTouchEvent(true);
+                    if (maxDistanceToDownPosition < maxAccessDrag) {
+                        double sqrt = Math.sqrt(Math.pow(event.getRawX() - downX, 2) + Math.pow(event.getRawY() - downY, 2));
+                        if (sqrt > maxDistanceToDownPosition) {
+                            maxDistanceToDownPosition = sqrt;
+                        }
+                    }
                     channelDrag(v, event);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    Log.i("jfiowejoigwieg", "up...cancel");
                     if (thread != null && thread.isAlive() && !thread.isInterrupted()) {
                         thread.interrupt();
                     }
                     if (isAccessDrag) {
-                        Log.i("jfiowejoigwieg", "恢复");
                         ChannelAttr vTag = (ChannelAttr) v.getTag();
                         v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
                         v.setBackgroundResource(channelEditBackground);
                         ((TextView) v).setTextColor(channelNormalTextColor);
                         isAccessDrag = false;
-                        return true;
+                        return !(maxDistanceToDownPosition < maxAccessDrag);
                     }
                 }
             }
@@ -1028,19 +1047,15 @@ public class ChannelView extends ScrollView {
         }
 
         private void setTime(final View v) {
-            Log.i("jfiowejoigwieg", "要执行了");
             thread = new Thread() {
                 @Override
                 public void run() {
                     try {
-                        Log.i("jfiowejoigwieg", "正在执行");
                         sleep(MIN_TIME_INTERVAL);
                     } catch (InterruptedException e) {
-                        Log.i("jfiowejoigwieg", "取消了");
                         e.printStackTrace();
                         return;
                     }
-                    Log.i("jfiowejoigwieg", "有背景了");
                     Message message = new Message();
                     message.obj = v;
                     handler.sendMessage(message);
@@ -1344,6 +1359,7 @@ public class ChannelView extends ScrollView {
         }
 
         float downX, downY;
+        float dragX, dragY;
         float moveX, moveY;
 
         /**
@@ -1352,10 +1368,10 @@ public class ChannelView extends ScrollView {
         private void channelDrag(View v, MotionEvent event) {
             moveX = event.getRawX();
             moveY = event.getRawY();
-            v.setX(v.getX() + (moveX - downX));
-            v.setY(v.getY() + (moveY - downY));
-            downX = moveX;
-            downY = moveY;
+            v.setX(v.getX() + (moveX - dragX));
+            v.setY(v.getY() + (moveY - dragY));
+            dragX = moveX;
+            dragY = moveY;
             ArrayList<View> myChannels = channelGroups.get(0);
             ChannelAttr vTag = (ChannelAttr) v.getTag();
             int vIndex = myChannels.indexOf(v);
