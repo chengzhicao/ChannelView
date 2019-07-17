@@ -726,6 +726,15 @@ public class ChannelView extends ScrollView {
         this.onChannelListener = onChannelListener;
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        int actionMask = ev.getAction() & MotionEvent.ACTION_MASK;
+        if (actionMask == MotionEvent.ACTION_POINTER_DOWN) {
+            return false;
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
     private class ChannelLayout extends GridLayout implements OnLongClickListener, OnClickListener, OnTouchListener {
 
         /**
