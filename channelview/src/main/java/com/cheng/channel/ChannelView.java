@@ -9,6 +9,7 @@ import android.content.res.TypedArray;
 import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DimenRes;
@@ -143,6 +144,8 @@ public class ChannelView extends ScrollView {
 
     private List<TextView> otherSubTitles = new ArrayList<>();
 
+    private float density;
+
     public ChannelView(Context context) {
         this(context, null);
     }
@@ -202,7 +205,8 @@ public class ChannelView extends ScrollView {
         if (channelFixedCount < 0) {
             channelFixedCount = 0;
         }
-        maxAccessDrag = context.getResources().getDisplayMetrics().density * DRAG_THRESHOLD + 0.5f;
+        density = context.getResources().getDisplayMetrics().density;
+        maxAccessDrag = density * DRAG_THRESHOLD + 0.5f;
     }
 
     /**
@@ -740,7 +744,7 @@ public class ChannelView extends ScrollView {
         /**
          * 频道最小可拖动距离
          */
-        private final int RANGE = 100;
+        private int RANGE = 30;
 
         private final int DURATION_TIME = 200;
 
@@ -870,6 +874,7 @@ public class ChannelView extends ScrollView {
         }
 
         private void init() {
+            RANGE = (int) (density * RANGE + 0.5f);
             setColumnCount(channelColumn);
             setPadding(channelPadding, channelPadding, channelPadding, channelPadding);
             addChannelView();
@@ -1075,7 +1080,7 @@ public class ChannelView extends ScrollView {
 
         private Thread thread;
 
-        private Handler handler = new Handler() {
+        private Handler handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 TextView v = (TextView) msg.obj;
@@ -1449,6 +1454,12 @@ public class ChannelView extends ScrollView {
                     }
                 }
             }
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            handler.removeCallbacksAndMessages(null);
         }
     }
 }
