@@ -1,6 +1,7 @@
 package com.cheng.channel;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -706,12 +707,20 @@ public class ChannelView extends ScrollView {
 
     public interface OnChannelListener {
         /**
-         * 频道点击
+         * 正常状态下频道点击
          *
          * @param position
          * @param channel
          */
         void channelItemClick(int position, Channel channel);
+
+        /**
+         * 编辑状态下频道点击
+         *
+         * @param position
+         * @param channel
+         */
+        void channelEditStateItemClick(int position, Channel channel);
 
         /**
          * 编辑频道完成
@@ -726,7 +735,12 @@ public class ChannelView extends ScrollView {
         void channelEditStart();
     }
 
+    @Deprecated
     public void setOnChannelItemClickListener(OnChannelListener onChannelListener) {
+        this.onChannelListener = onChannelListener;
+    }
+
+    public void setOnChannelListener(OnChannelListener onChannelListener) {
         this.onChannelListener = onChannelListener;
     }
 
@@ -1107,21 +1121,28 @@ public class ChannelView extends ScrollView {
                 ChannelAttr tag = (ChannelAttr) v.getTag();
                 ArrayList<View> channels = channelGroups.get(tag.groupIndex);
                 //如果点击的是我的频道组中的频道
+                int indexOf = channels.indexOf(v);
                 if (tag.groupIndex == 0) {
-                    if (channelClickType == DELETE && channels.indexOf(v) >= channelFixedCount) {
+                    if (channelClickType == DELETE && indexOf >= channelFixedCount) {
                         forwardSort(v, channels);
                         //减少我的频道
                         deleteMyChannel(v);
+                        if (onChannelListener != null) {
+                            onChannelListener.channelEditStateItemClick(indexOf, ((ChannelAttr) v.getTag()).channel);
+                        }
                     } else if (channelClickType == NORMAL) {
                         //普通状态时进行点击事件回调
                         if (onChannelListener != null) {
-                            onChannelListener.channelItemClick(channels.indexOf(v), ((ChannelAttr) v.getTag()).channel);
+                            onChannelListener.channelItemClick(indexOf, ((ChannelAttr) v.getTag()).channel);
                         }
                     }
                 } else {//点击的其他频道组中的频道
                     forwardSort(v, channels);
                     //增加我的频道
                     addMyChannel(v);
+                    if (onChannelListener != null) {
+                        onChannelListener.channelEditStateItemClick(channelGroups.get(0).indexOf(v), ((ChannelAttr) v.getTag()).channel);
+                    }
                 }
             }
         }
@@ -1180,6 +1201,15 @@ public class ChannelView extends ScrollView {
         }
 
         /**
+         * 根据权重获取插入位置
+         *
+         * @return
+         */
+        private int getInsertPosition() {
+            return 0;
+        }
+
+        /**
          * 增加我的频道
          *
          * @param v
@@ -1190,35 +1220,39 @@ public class ChannelView extends ScrollView {
             ChannelAttr tag = (ChannelAttr) v.getTag();
             ArrayList<View> channels = channelGroups.get(tag.groupIndex);
             ArrayList<View> myChannels = channelGroups.get(0);
-            View finalMyChannel;
+            View insertPositionChannel;
             if (myChannels.size() == 0) {
-                finalMyChannel = channelTitleGroups.get(0);
+                insertPositionChannel = channelTitleGroups.get(0);
             } else {
-                finalMyChannel = myChannels.get(myChannels.size() - 1);
+                insertPositionChannel = myChannels.get(myChannels.size() - 1);
             }
-            ChannelAttr finalMyChannelTag = (ChannelAttr) finalMyChannel.getTag();
+            ChannelAttr insertPositionChannelTag = (ChannelAttr) insertPositionChannel.getTag();
             myChannels.add(myChannels.size(), v);
             channels.remove(v);
             v.setOnLongClickListener(this);
             v.setOnTouchListener(this);
-            animateChangeGridViewHeight();
-            final ViewPropertyAnimator animate = v.animate();
+            animateChangeGridLayoutHeight();
+            ViewPropertyAnimator animate = v.animate();
             if (myChannels.size() % channelColumn == 1 || channelColumn == 1) {
                 if (myChannels.size() == 1) {
-                    tag.coordinate = new PointF(finalMyChannelTag.coordinate.x, finalMyChannelTag.coordinate.y + finalMyChannel.getMeasuredHeight());
+                    tag.coordinate = new PointF(insertPositionChannelTag.coordinate.x, insertPositionChannelTag.coordinate.y + insertPositionChannel.getMeasuredHeight());
                     //我的频道多一行，下面的view往下移
                     viewMove(1, channelHeight);
                 } else {
                     ChannelAttr firstMyChannelTag = (ChannelAttr) myChannels.get(0).getTag();
-                    tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, finalMyChannelTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
+                    tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, insertPositionChannelTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
                     //我的频道多一行，下面的view往下移
                     viewMove(1, channelHeight + channelHorizontalSpacing * 2);
                 }
-                animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             } else {
-                tag.coordinate = new PointF(finalMyChannelTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, finalMyChannelTag.coordinate.y);
-                animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
+                tag.coordinate = new PointF(insertPositionChannelTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, insertPositionChannelTag.coordinate.y);
             }
+            //可自定义插入位置，暂时在尾部插入
+            int insertPosition = myChannels.size() - 1;
+            if (insertPosition != myChannels.size() - 1) {
+                backOrForward(v, insertPosition, myChannels.size() - 1, myChannels, tag, (ChannelAttr) myChannels.get(insertPosition).getTag());
+            }
+            animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             if (channelClickType == DELETE) {
                 v.setBackgroundResource(channelEditBackground);
             }
@@ -1261,7 +1295,7 @@ public class ChannelView extends ScrollView {
             channelGroups.get(0).remove(v);
             v.setOnLongClickListener(null);
             v.setOnTouchListener(null);
-            animateChangeGridViewHeight();
+            animateChangeGridLayoutHeight();
             PointF newPointF;
             ChannelAttr finalChannelViewTag = (ChannelAttr) beLongChannels.get(beLongChannels.size() - 1).getTag();
             //这个地方要注意顺序
@@ -1300,9 +1334,9 @@ public class ChannelView extends ScrollView {
         }
 
         /**
-         * 行数变化后的gridview高度并用动画改变
+         * 行数变化后的GridLayout高度并用动画改变
          */
-        private void animateChangeGridViewHeight() {
+        private void animateChangeGridLayoutHeight() {
             int newAllChannelGroupsHeight = 0;
             for (int i = 0; i < channelGroups.size(); i++) {
                 ArrayList<View> channels = channelGroups.get(i);
@@ -1327,25 +1361,10 @@ public class ChannelView extends ScrollView {
                         requestLayout();
                     }
                 });
-                valueAnimator.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-
-                    }
-
+                valueAnimator.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         isAnimateChangeHeight = false;
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-
                     }
                 });
             }
@@ -1372,16 +1391,15 @@ public class ChannelView extends ScrollView {
             }
         }
 
-        float downX, downY;
-        float dragX, dragY;
-        float moveX, moveY;
+        private float downX, downY;
+        private float dragX, dragY;
 
         /**
          * 频道拖动
          */
         private void channelDrag(View v, MotionEvent event) {
-            moveX = event.getRawX();
-            moveY = event.getRawY();
+            float moveX = event.getRawX();
+            float moveY = event.getRawY();
             v.setX(v.getX() + (moveX - dragX));
             v.setY(v.getY() + (moveY - dragY));
             dragX = moveX;
@@ -1397,38 +1415,45 @@ public class ChannelView extends ScrollView {
                     int y1 = (int) iChannelTag.coordinate.y;
                     int sqrt = (int) Math.sqrt((v.getX() - x1) * (v.getX() - x1) + (v.getY() - y1) * (v.getY() - y1));
                     if (sqrt <= RANGE && !animatorSet.isRunning()) {
-                        animatorSet = new AnimatorSet();
-                        PointF tempPoint = iChannelTag.coordinate;
-                        ObjectAnimator[] objectAnimators = new ObjectAnimator[Math.abs(i - vIndex) * 2];
-                        if (i < vIndex) {
-                            for (int j = i; j < vIndex; j++) {
-                                TextView view = (TextView) myChannels.get(j);
-                                ChannelAttr viewTag = (ChannelAttr) view.getTag();
-                                ChannelAttr nextGridViewAttr = ((ChannelAttr) myChannels.get(j + 1).getTag());
-                                viewTag.coordinate = nextGridViewAttr.coordinate;
-                                objectAnimators[2 * (j - i)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
-                                objectAnimators[2 * (j - i) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
-                            }
-                        } else {
-                            for (int j = i; j > vIndex; j--) {
-                                TextView view = (TextView) myChannels.get(j);
-                                ChannelAttr viewTag = (ChannelAttr) view.getTag();
-                                ChannelAttr preGridViewAttr = ((ChannelAttr) myChannels.get(j - 1).getTag());
-                                viewTag.coordinate = preGridViewAttr.coordinate;
-                                objectAnimators[2 * (j - vIndex - 1)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
-                                objectAnimators[2 * (j - vIndex - 1) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
-                            }
-                        }
-                        animatorSet.playTogether(objectAnimators);
-                        animatorSet.setDuration(DURATION_TIME);
-                        animatorSet.start();
-                        vTag.coordinate = tempPoint;
-                        myChannels.remove(v);
-                        myChannels.add(i, v);
+                        backOrForward(v, i, vIndex, myChannels, vTag, iChannelTag);
                         break;
                     }
                 }
             }
+        }
+
+        /**
+         * 我的频道，循环往前、后移
+         */
+        private void backOrForward(View v, int i, int vIndex, ArrayList<View> myChannels, ChannelAttr vTag, ChannelAttr iChannelTag) {
+            animatorSet = new AnimatorSet();
+            PointF tempPoint = iChannelTag.coordinate;
+            ObjectAnimator[] objectAnimators = new ObjectAnimator[Math.abs(i - vIndex) * 2];
+            if (i < vIndex) {
+                for (int j = i; j < vIndex; j++) {
+                    TextView view = (TextView) myChannels.get(j);
+                    ChannelAttr viewTag = (ChannelAttr) view.getTag();
+                    ChannelAttr nextGridViewAttr = ((ChannelAttr) myChannels.get(j + 1).getTag());
+                    viewTag.coordinate = nextGridViewAttr.coordinate;
+                    objectAnimators[2 * (j - i)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
+                    objectAnimators[2 * (j - i) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
+                }
+            } else {
+                for (int j = i; j > vIndex; j--) {
+                    TextView view = (TextView) myChannels.get(j);
+                    ChannelAttr viewTag = (ChannelAttr) view.getTag();
+                    ChannelAttr preGridViewAttr = ((ChannelAttr) myChannels.get(j - 1).getTag());
+                    viewTag.coordinate = preGridViewAttr.coordinate;
+                    objectAnimators[2 * (j - vIndex - 1)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
+                    objectAnimators[2 * (j - vIndex - 1) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
+                }
+            }
+            animatorSet.playTogether(objectAnimators);
+            animatorSet.setDuration(DURATION_TIME);
+            animatorSet.start();
+            vTag.coordinate = tempPoint;
+            myChannels.remove(v);
+            myChannels.add(i, v);
         }
 
         /**

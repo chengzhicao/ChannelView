@@ -5,13 +5,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.cheng.channel.Channel;
+import com.cheng.channel.ChannelListenerAdapter;
 import com.cheng.channel.ChannelView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChannelViewActivity extends AppCompatActivity implements ChannelView.OnChannelListener {
-    private String TAG = getClass().getSimpleName();
+    private String TAG = "ChannelViewActivity:";
     private ChannelView channelView;
 
     @Override
@@ -76,13 +77,40 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
         channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
         channelView.setChannelEditBackground(R.drawable.bg_channel_edit);
         channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
-        channelView.setOnChannelItemClickListener(this);
+//        channelView.setOnChannelItemClickListener(this);
+        channelView.setOnChannelListener(new ChannelListenerAdapter() {
+            @Override
+            public void channelItemClick(int position, Channel channel) {
+                Log.i(TAG, position + ".." + channel);
+            }
+
+            @Override
+            public void channelEditStateItemClick(int position, Channel channel) {
+                Log.i(TAG + "EditState:", position + ".." + channel);
+            }
+
+            @Override
+            public void channelEditFinish(List<Channel> channelList) {
+                Log.i(TAG, channelList.toString());
+                Log.i(TAG, channelView.getMyChannel().toString());
+            }
+
+            @Override
+            public void channelEditStart() {
+                Log.i(TAG, "channelEditStart");
+            }
+        });
     }
 
 
     @Override
     public void channelItemClick(int position, Channel channel) {
         Log.i(TAG, position + ".." + channel);
+    }
+
+    @Override
+    public void channelEditStateItemClick(int position, Channel channel) {
+        Log.i(TAG + "EditState:", position + ".." + channel);
     }
 
     @Override
