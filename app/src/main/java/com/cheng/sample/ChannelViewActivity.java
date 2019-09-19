@@ -3,15 +3,18 @@ package com.cheng.sample;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 
+import com.cheng.channel.DefaultStyleAdapter;
 import com.cheng.channel.Channel;
-import com.cheng.channel.ChannelListenerAdapter;
+import com.cheng.channel.adapter.ChannelListenerAdapter;
 import com.cheng.channel.ChannelView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChannelViewActivity extends AppCompatActivity implements ChannelView.OnChannelListener {
+public class ChannelViewActivity extends AppCompatActivity {
     private String TAG = "ChannelViewActivity:";
     private ChannelView channelView;
 
@@ -74,11 +77,42 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
         channelView.addPlate("推荐频道", recommendChannelList1);
         channelView.addPlate("国内", recommendChannelList2);
         channelView.addPlate("国外", recommendChannelList3);
+//        channelView.setStyleAdapter(new BaseStyleAdapter() {
+//            @Override
+//            public View createStyleView(ViewGroup parent, String channelName) {
+//                View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.channel_test, null);
+//                TextView tv = inflate.findViewById(R.id.tv_channel);
+//                tv.setText(channelName);
+//                return inflate;
+//            }
+//        });
+        channelView.setStyleAdapter(new DefaultStyleAdapter() {
+            @Override
+            public View createStyleView(ViewGroup parent, String channelName) {
+                return super.createStyleView(parent, channelName);
+            }
+
+            @Override
+            public void setNormalStyle(View channelView) {
+                super.setNormalStyle(channelView);
+            }
+
+            @Override
+            public void setFixedStyle(View channelView) {
+                super.setFixedStyle(channelView);
+            }
+
+            @Override
+            public void setEditStyle(View channelView) {
+                super.setEditStyle(channelView);
+            }
+
+            @Override
+            public void setFocusedStyle(View channelView) {
+                super.setFocusedStyle(channelView);
+            }
+        });
         channelView.inflateData();
-        channelView.setChannelNormalBackground(R.drawable.bg_channel_normal);
-        channelView.setChannelEditBackground(R.drawable.bg_channel_edit);
-        channelView.setChannelFocusedBackground(R.drawable.bg_channel_focused);
-//        channelView.setOnChannelItemClickListener(this);
         channelView.setOnChannelListener(new ChannelListenerAdapter() {
             @Override
             public void channelItemClick(int position, Channel channel) {
@@ -101,26 +135,5 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
                 Log.i(TAG, "channelEditStart");
             }
         });
-    }
-
-    @Override
-    public void channelItemClick(int position, Channel channel) {
-        Log.i(TAG, position + ".." + channel);
-    }
-
-    @Override
-    public void channelEditStateItemClick(int position, Channel channel) {
-        Log.i(TAG + "EditState:", position + ".." + channel);
-    }
-
-    @Override
-    public void channelEditFinish(List<Channel> channelList) {
-        Log.i(TAG, channelList.toString());
-        Log.i(TAG, channelView.getMyChannel().toString());
-    }
-
-    @Override
-    public void channelEditStart() {
-
     }
 }

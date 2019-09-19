@@ -1,8 +1,11 @@
-package com.cheng.channel;
+package com.cheng.channel.adapter;
+
+import com.cheng.channel.Channel;
+import com.cheng.channel.ChannelView;
 
 import java.util.List;
 
-public abstract class ChannelListenerAdapter implements ChannelView.OnChannelListener {
+public abstract class ChannelListenerAdapter implements ChannelView.OnChannelListener2 {
     @Override
     public void channelItemClick(int position, Channel channel) {
 
