@@ -69,6 +69,7 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
         }
 
         channelView.setChannelFixedCount(3);
+        channelView.setInsertRecommendPosition(6);
         channelView.addPlate("我的频道", myChannelList);
         channelView.addPlate("推荐频道", recommendChannelList1);
         channelView.addPlate("国内", recommendChannelList2);
@@ -101,7 +102,6 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
             }
         });
     }
-
 
     @Override
     public void channelItemClick(int position, Channel channel) {

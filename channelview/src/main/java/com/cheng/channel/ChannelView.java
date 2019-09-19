@@ -220,6 +220,8 @@ public class ChannelView extends ScrollView {
      */
     private float maxAccessDrag;
 
+    private int recommendPosition = -1;
+
     /**
      * 设置固定频道个数
      *
@@ -243,6 +245,15 @@ public class ChannelView extends ScrollView {
                 ((TextView) view).setTextColor(channelFixedTextColor);
             }
         }
+    }
+
+    /**
+     * 添加频道时设置是否插入到推荐位置，如果不设置，默认插入到尾部
+     *
+     * @param recommendPosition 推荐位置
+     */
+    public void setInsertRecommendPosition(int recommendPosition) {
+        this.recommendPosition = recommendPosition;
     }
 
     /**
@@ -1201,12 +1212,24 @@ public class ChannelView extends ScrollView {
         }
 
         /**
-         * 根据权重获取插入位置
+         * 获取插入位置
          *
          * @return
          */
         private int getInsertPosition() {
-            return 0;
+            int size = channelGroups.get(0).size();
+            if (recommendPosition < 0) {
+                return size - 1;
+            }
+            if (size - 1 < recommendPosition) {
+                return size - 1;
+            } else {
+                if (channelFixedCount > recommendPosition) {
+                    return channelFixedCount;
+                } else {
+                    return recommendPosition;
+                }
+            }
         }
 
         /**
@@ -1248,7 +1271,7 @@ public class ChannelView extends ScrollView {
                 tag.coordinate = new PointF(insertPositionChannelTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, insertPositionChannelTag.coordinate.y);
             }
             //可自定义插入位置，暂时在尾部插入
-            int insertPosition = myChannels.size() - 1;
+            int insertPosition = getInsertPosition();
             if (insertPosition != myChannels.size() - 1) {
                 backOrForward(v, insertPosition, myChannels.size() - 1, myChannels, tag, (ChannelAttr) myChannels.get(insertPosition).getTag());
             }
