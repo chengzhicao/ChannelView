@@ -16,4 +16,8 @@ public class MainActivity extends AppCompatActivity {
     public void intoChannelView(View view) {
         startActivity(new Intent(this, ChannelViewActivity.class));
     }
+
+    public void intoCustomChannelView(View view) {
+        startActivity(new Intent(this, CustomChannelActivity.class));
+    }
 }

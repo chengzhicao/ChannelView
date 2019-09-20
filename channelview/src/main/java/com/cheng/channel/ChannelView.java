@@ -3,7 +3,6 @@ package com.cheng.channel;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -969,7 +968,6 @@ public class ChannelView extends ScrollView {
         private void init() {
             RANGE = (int) (density * RANGE + 0.5f);
             setColumnCount(channelColumn);
-            setPadding(channelPadding, channelPadding, channelPadding, channelPadding);
             addChannelView();
         }
 
@@ -1041,6 +1039,7 @@ public class ChannelView extends ScrollView {
                     }
                     platesTitle.add(tvTitle);
                     layoutParams.height = platesTitleHeight;
+                    layoutParams.leftMargin = channelPadding;
                     view.setPadding(platesTitleLeftRightPadding, 0, platesTitleLeftRightPadding, 0);
                     addView(view, layoutParams);
                     channelTitleGroups.add(view);
@@ -1077,10 +1076,10 @@ public class ChannelView extends ScrollView {
                         LayoutParams params = new LayoutParams();
                         int leftMargin = channelVerticalSpacing, topMargin = channelHorizontalSpacing, rightMargin = channelVerticalSpacing, bottomMargin = channelHorizontalSpacing;
                         if (i % channelColumn == 0) {
-                            leftMargin = 0;
+                            leftMargin = channelPadding;
                         }
                         if ((i + 1) % channelColumn == 0) {
-                            rightMargin = 0;
+                            rightMargin = channelPadding;
                         }
                         if (i < channelColumn) {
                             topMargin = 0;
@@ -1499,7 +1498,7 @@ public class ChannelView extends ScrollView {
                     int x1 = (int) iChannelTag.coordinate.x;
                     int y1 = (int) iChannelTag.coordinate.y;
                     int sqrt = (int) Math.sqrt((v.getX() - x1) * (v.getX() - x1) + (v.getY() - y1) * (v.getY() - y1));
-                    if (sqrt <= RANGE && !animatorSet.isRunning()) {
+                    if (sqrt <= RANGE) {
                         backOrForward(v, i, vIndex, myChannels, vTag, iChannelTag);
                         break;
                     }
@@ -1511,17 +1510,15 @@ public class ChannelView extends ScrollView {
          * 我的频道，循环往前、后移
          */
         private void backOrForward(View v, int i, int vIndex, ArrayList<View> myChannels, ChannelAttr vTag, ChannelAttr iChannelTag) {
-            animatorSet = new AnimatorSet();
             PointF tempPoint = iChannelTag.coordinate;
-            ObjectAnimator[] objectAnimators = new ObjectAnimator[Math.abs(i - vIndex) * 2];
             if (i < vIndex) {
                 for (int j = i; j < vIndex; j++) {
                     View view = myChannels.get(j);
                     ChannelAttr viewTag = (ChannelAttr) view.getTag();
                     ChannelAttr nextGridViewAttr = ((ChannelAttr) myChannels.get(j + 1).getTag());
                     viewTag.coordinate = nextGridViewAttr.coordinate;
-                    objectAnimators[2 * (j - i)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
-                    objectAnimators[2 * (j - i) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
+                    view.animate().x(viewTag.coordinate.x).setDuration(DURATION_TIME).start();
+                    view.animate().y(viewTag.coordinate.y).setDuration(DURATION_TIME).start();
                 }
             } else {
                 for (int j = i; j > vIndex; j--) {
@@ -1529,13 +1526,10 @@ public class ChannelView extends ScrollView {
                     ChannelAttr viewTag = (ChannelAttr) view.getTag();
                     ChannelAttr preGridViewAttr = ((ChannelAttr) myChannels.get(j - 1).getTag());
                     viewTag.coordinate = preGridViewAttr.coordinate;
-                    objectAnimators[2 * (j - vIndex - 1)] = ObjectAnimator.ofFloat(view, "X", viewTag.coordinate.x);
-                    objectAnimators[2 * (j - vIndex - 1) + 1] = ObjectAnimator.ofFloat(view, "Y", viewTag.coordinate.y);
+                    view.animate().x(viewTag.coordinate.x).setDuration(DURATION_TIME).start();
+                    view.animate().y(viewTag.coordinate.y).setDuration(DURATION_TIME).start();
                 }
             }
-            animatorSet.playTogether(objectAnimators);
-            animatorSet.setDuration(DURATION_TIME);
-            animatorSet.start();
             vTag.coordinate = tempPoint;
             myChannels.remove(v);
             myChannels.add(i, v);

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context=".ChannelViewActivity">
+
+    <com.cheng.channel.ChannelView
+        android:id="@+id/channelView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:otherSubTitleName="点击添加频道"
+        app:otherSubTitleTextSize="14sp"
+        app:platesTitleBold="true"
+        app:platesTitleSize="16sp"
+        app:channelHorizontalSpacing="5dp"
+        app:subTitleName="拖动排序"
+        app:subTitleTextSize="14sp"
+        app:tipEditBackground="@drawable/bg_tip_custom_edit"
+        app:tipEditTextColor="#1E87FF"
+        app:tipEditTextSize="14sp"
+        app:tipFinishBackground="@drawable/bg_tip_custom_finish"
+        app:tipFinishTextColor="#FFFFFF"/>
+
+</LinearLayout>
