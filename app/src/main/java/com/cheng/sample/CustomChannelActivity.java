@@ -80,42 +80,42 @@ public class CustomChannelActivity extends AppCompatActivity {
         channelView.addPlate("推荐频道", recommendChannelList1);
         channelView.addPlate("国内", recommendChannelList2);
         channelView.addPlate("国外", recommendChannelList3);
-        channelView.setStyleAdapter(new BaseStyleAdapter() {
-            @Override
-            public View createStyleView(ViewGroup parent, String channelName) {
-                View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_custom_channel, null);
-                TextView tv = inflate.findViewById(R.id.tv_channel);
-                tv.setText(channelName);
-                return inflate;
-            }
-
-            @Override
-            public void setNormalStyle(View channelView) {
-                TextView textView = channelView.findViewById(R.id.tv_channel);
-                textView.setBackgroundResource(R.drawable.bg_channel_custom_normal);
-                channelView.findViewById(R.id.iv_delete).setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void setFixedStyle(View channelView) {
-                TextView textView = channelView.findViewById(R.id.tv_channel);
-                textView.setTextColor(Color.parseColor("#1E87FF"));
-                textView.setBackgroundResource(R.drawable.bg_channel_custom_fixed);
-            }
-
-            @Override
-            public void setEditStyle(View channelView) {
-                TextView textView = channelView.findViewById(R.id.tv_channel);
-                textView.setBackgroundResource(R.drawable.bg_channel_custom_edit);
-                channelView.findViewById(R.id.iv_delete).setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void setFocusedStyle(View channelView) {
-                TextView textView = channelView.findViewById(R.id.tv_channel);
-                textView.setBackgroundResource(R.drawable.bg_channel_custom_focused);
-            }
-        });
+//        channelView.setStyleAdapter(new BaseStyleAdapter() {
+//            @Override
+//            public View createStyleView(ViewGroup parent, String channelName) {
+//                View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_custom_channel, null);
+//                TextView tv = inflate.findViewById(R.id.tv_channel);
+//                tv.setText(channelName);
+//                return inflate;
+//            }
+//
+//            @Override
+//            public void setNormalStyle(View channelView) {
+//                TextView textView = channelView.findViewById(R.id.tv_channel);
+//                textView.setBackgroundResource(R.drawable.bg_channel_custom_normal);
+//                channelView.findViewById(R.id.iv_delete).setVisibility(View.INVISIBLE);
+//            }
+//
+//            @Override
+//            public void setFixedStyle(View channelView) {
+//                TextView textView = channelView.findViewById(R.id.tv_channel);
+//                textView.setTextColor(Color.parseColor("#1E87FF"));
+//                textView.setBackgroundResource(R.drawable.bg_channel_custom_fixed);
+//            }
+//
+//            @Override
+//            public void setEditStyle(View channelView) {
+//                TextView textView = channelView.findViewById(R.id.tv_channel);
+//                textView.setBackgroundResource(R.drawable.bg_channel_custom_edit);
+//                channelView.findViewById(R.id.iv_delete).setVisibility(View.VISIBLE);
+//            }
+//
+//            @Override
+//            public void setFocusedStyle(View channelView) {
+//                TextView textView = channelView.findViewById(R.id.tv_channel);
+//                textView.setBackgroundResource(R.drawable.bg_channel_custom_focused);
+//            }
+//        });
         channelView.inflateData();
         channelView.setOnChannelListener(new ChannelListenerAdapter() {
             @Override

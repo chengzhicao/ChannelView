@@ -20,6 +20,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.GridLayout;
 import android.widget.ScrollView;
@@ -249,7 +250,7 @@ public class ChannelView extends ScrollView {
             }
             for (int i = 0; i < channelFixedCount; i++) {
                 View view = channelLayout.channelGroups.get(0).get(i);
-                styleAdapter.setFixedStyle(view);
+                styleAdapter.setFixedStyle(getViewHolder(view));
             }
         }
     }
@@ -722,7 +723,7 @@ public class ChannelView extends ScrollView {
         List<Channel> channels = new ArrayList<>();
         if (channelLayout != null && channelLayout.channelGroups.size() > 0 && channelLayout.channelGroups.get(0) != null) {
             for (View view : channelLayout.channelGroups.get(0)) {
-                channels.add(((ChannelAttr) view.getTag()).channel);
+                channels.add(getChannelAttr(view).channel);
             }
         }
         return channels;
@@ -740,7 +741,7 @@ public class ChannelView extends ScrollView {
             for (int i = 1; i < len; i++) {
                 List<Channel> channels = new ArrayList<>();
                 for (View view : channelLayout.channelGroups.get(i)) {
-                    channels.add(((ChannelAttr) view.getTag()).channel);
+                    channels.add(getChannelAttr(view).channel);
                 }
                 otherChannels.add(channels);
             }
@@ -759,7 +760,7 @@ public class ChannelView extends ScrollView {
         if (channelLayout != null && channelLayout.channelGroups.size() > 0 && channelLayout.channelGroups.get(0) != null) {
             int[] nowMyChannelCode = new int[channelLayout.channelGroups.get(0).size()];
             for (int i = 0; i < channelLayout.channelGroups.get(0).size(); i++) {
-                ChannelAttr channelAttr = (ChannelAttr) channelLayout.channelGroups.get(0).get(i).getTag();
+                ChannelAttr channelAttr = getChannelAttr(channelLayout.channelGroups.get(0).get(i));
                 nowMyChannelCode[i] = channelAttr.channel.code;
             }
             if (myChannelCode.length == nowMyChannelCode.length) {
@@ -928,11 +929,11 @@ public class ChannelView extends ScrollView {
                 int allChannelTitleHeight = 0;
                 for (int i = 0; i < getChildCount(); i++) {
                     View childAt = getChildAt(i);
-                    if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.TITLE) {
+                    if (getChannelAttr(childAt).type == ChannelAttr.TITLE) {
                         //计算标题View的宽高
                         childAt.measure(MeasureSpec.makeMeasureSpec(width - channelPadding * 2, MeasureSpec.EXACTLY), heightMeasureSpec);
                         allChannelTitleHeight += childAt.getMeasuredHeight();
-                    } else if (((ChannelAttr) childAt.getTag()).type == ChannelAttr.CHANNEL) {
+                    } else if (getChannelAttr(childAt).type == ChannelAttr.CHANNEL) {
                         //计算每个频道的宽高
                         channelWidth = (width - channelVerticalSpacing * (channelColumn * 2 - 2) - channelPadding * 2) / channelColumn;
                         childAt.measure(MeasureSpec.makeMeasureSpec(channelWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(channelHeight, MeasureSpec.EXACTLY));
@@ -957,7 +958,7 @@ public class ChannelView extends ScrollView {
                 super.onLayout(changed, left, top, right, bottom);
                 for (int i = 0; i < getChildCount(); i++) {
                     View childAt = getChildAt(i);
-                    ChannelAttr tag = (ChannelAttr) childAt.getTag();
+                    ChannelAttr tag = getChannelAttr(childAt);
                     tag.coordinate.x = childAt.getX();
                     tag.coordinate.y = childAt.getY();
                 }
@@ -996,7 +997,7 @@ public class ChannelView extends ScrollView {
                     Spec rowSpec = GridLayout.spec(startRow);
                     //标题要占channelColumn列
                     Spec columnSpec = GridLayout.spec(0, channelColumn);
-                    LayoutParams layoutParams = new LayoutParams(rowSpec, columnSpec);
+                    ChannelLayoutParams layoutParams = new ChannelLayoutParams(rowSpec, columnSpec);
                     View view = LayoutInflater.from(mContext).inflate(R.layout.cgl_my_channel, null);
                     TextView otherSubTitle = view.findViewById(R.id.tv_sub_title);
                     if (j == 0) {
@@ -1027,8 +1028,6 @@ public class ChannelView extends ScrollView {
                     ChannelAttr channelTitleAttr = new ChannelAttr();
                     channelTitleAttr.type = ChannelAttr.TITLE;
                     channelTitleAttr.coordinate = new PointF();
-                    //为标题View添加一个ChannelAttr属性
-                    view.setTag(channelTitleAttr);
                     TextView tvTitle = view.findViewById(R.id.tv_title);
                     tvTitle.setText(aKeySet);
                     tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, platesTitleSize);
@@ -1040,13 +1039,16 @@ public class ChannelView extends ScrollView {
                     platesTitle.add(tvTitle);
                     layoutParams.height = platesTitleHeight;
                     layoutParams.leftMargin = channelPadding;
+                    //为标题View添加一个ChannelAttr属性
+                    layoutParams.mChannelAttr = channelTitleAttr;
                     view.setPadding(platesTitleLeftRightPadding, 0, platesTitleLeftRightPadding, 0);
                     addView(view, layoutParams);
                     channelTitleGroups.add(view);
                     ArrayList<View> channelGroup = new ArrayList<>();
                     int remainder = channelContent.size() % channelColumn;
                     for (int i = 0; i < channelContent.size(); i++) {//遍历value中的频道
-                        View channelView = styleAdapter.createStyleView(this, channelContent.get(i).channelName);
+                        ViewHolder holder = styleAdapter.createStyleView(this, channelContent.get(i).channelName);
+                        View channelView = holder.itemView;
                         if (channelView == null) {
                             throw new RuntimeException("You must set an adapter for the channel.");
                         }
@@ -1055,25 +1057,23 @@ public class ChannelView extends ScrollView {
                         channelAttr.groupIndex = j;
                         channelAttr.coordinate = new PointF();
                         channelAttr.channel = channelContent.get(i);
-                        //为频道添加ChannelAttr属性
-                        channelView.setTag(channelAttr);
                         if (j == 0) {
                             if (i < channelFixedCount) {
-                                styleAdapter.setFixedStyle(channelView);
+                                styleAdapter.setFixedStyle(holder);
                                 fixedTextView.add(channelView);
                             } else {
                                 channelView.setOnTouchListener(this);
                                 channelView.setOnLongClickListener(this);
-                                styleAdapter.setNormalStyle(channelView);
+                                styleAdapter.setNormalStyle(holder);
                                 allTextView.add(channelView);
                             }
                         } else {
-                            styleAdapter.setNormalStyle(channelView);
+                            styleAdapter.setNormalStyle(holder);
                             allTextView.add(channelView);
                         }
                         channelView.setOnClickListener(this);
                         //设置每个频道的间距
-                        LayoutParams params = new LayoutParams();
+                        ChannelLayoutParams params = new ChannelLayoutParams();
                         int leftMargin = channelVerticalSpacing, topMargin = channelHorizontalSpacing, rightMargin = channelVerticalSpacing, bottomMargin = channelHorizontalSpacing;
                         if (i % channelColumn == 0) {
                             leftMargin = channelPadding;
@@ -1093,6 +1093,8 @@ public class ChannelView extends ScrollView {
                                 bottomMargin = 0;
                             }
                         }
+                        params.mChannelAttr = channelAttr;
+                        params.mViewHolder = holder;
                         params.setMargins(leftMargin, topMargin, rightMargin, bottomMargin);
                         addView(channelView, params);
                         channelGroup.add(channelView);
@@ -1137,9 +1139,9 @@ public class ChannelView extends ScrollView {
                         thread.interrupt();
                     }
                     if (isAccessDrag) {
-                        ChannelAttr vTag = (ChannelAttr) v.getTag();
+                        ChannelAttr vTag = getChannelAttr(v);
                         v.animate().x(vTag.coordinate.x).y(vTag.coordinate.y).setDuration(DURATION_TIME);
-                        styleAdapter.setEditStyle(v);
+                        styleAdapter.setEditStyle(getViewHolder(v));
                         isAccessDrag = false;
                         return !(maxDistanceToDownPosition < maxAccessDrag);
                     }
@@ -1173,7 +1175,7 @@ public class ChannelView extends ScrollView {
             public void handleMessage(Message msg) {
                 View v = (View) msg.obj;
                 v.bringToFront();
-                styleAdapter.setFocusedStyle(v);
+                styleAdapter.setFocusedStyle(getViewHolder(v));
                 isAccessDrag = true;
             }
         };
@@ -1191,7 +1193,7 @@ public class ChannelView extends ScrollView {
                     onChannelListener.channelEditFinish(getMyChannel());
                 }
             } else {
-                ChannelAttr tag = (ChannelAttr) v.getTag();
+                ChannelAttr tag = getChannelAttr(v);
                 ArrayList<View> channels = channelGroups.get(tag.groupIndex);
                 //如果点击的是我的频道组中的频道
                 int indexOf = channels.indexOf(v);
@@ -1201,12 +1203,12 @@ public class ChannelView extends ScrollView {
                         //减少我的频道
                         deleteMyChannel(v);
                         if (onChannelListener != null && onChannelListener instanceof OnChannelListener2) {
-                            ((OnChannelListener2) onChannelListener).channelEditStateItemClick(indexOf, ((ChannelAttr) v.getTag()).channel);
+                            ((OnChannelListener2) onChannelListener).channelEditStateItemClick(indexOf, getChannelAttr(v).channel);
                         }
                     } else if (channelClickType == NORMAL) {
                         //普通状态时进行点击事件回调
                         if (onChannelListener != null) {
-                            onChannelListener.channelItemClick(indexOf, ((ChannelAttr) v.getTag()).channel);
+                            onChannelListener.channelItemClick(indexOf, getChannelAttr(v).channel);
                         }
                     }
                 } else {//点击的其他频道组中的频道
@@ -1214,7 +1216,7 @@ public class ChannelView extends ScrollView {
                     //增加我的频道
                     addMyChannel(v);
                     if (onChannelListener != null && onChannelListener instanceof OnChannelListener2) {
-                        ((OnChannelListener2) onChannelListener).channelEditStateItemClick(channelGroups.get(0).indexOf(v), ((ChannelAttr) v.getTag()).channel);
+                        ((OnChannelListener2) onChannelListener).channelEditStateItemClick(channelGroups.get(0).indexOf(v), getChannelAttr(v).channel);
                     }
                 }
             }
@@ -1231,9 +1233,9 @@ public class ChannelView extends ScrollView {
             if (indexOf >= channelFixedCount) {
                 for (int i = channelFixedCount; i < views.size(); i++) {
                     if (i == indexOf) {
-                        styleAdapter.setFocusedStyle(views.get(i));
+                        styleAdapter.setFocusedStyle(getViewHolder(views.get(i)));
                     } else {
-                        styleAdapter.setEditStyle(views.get(i));
+                        styleAdapter.setEditStyle(getViewHolder(views.get(i)));
                     }
                 }
                 changeTip(true);
@@ -1246,7 +1248,7 @@ public class ChannelView extends ScrollView {
         private void edit() {
             ArrayList<View> views = channelGroups.get(0);
             for (int i = channelFixedCount; i < views.size(); i++) {
-                styleAdapter.setEditStyle(views.get(i));
+                styleAdapter.setEditStyle(getViewHolder(views.get(i)));
             }
             changeTip(true);
         }
@@ -1263,9 +1265,9 @@ public class ChannelView extends ScrollView {
             if (indexOfValue != size - 1) {
                 for (int i = size - 1; i > indexOfValue; i--) {
                     View lastView = channels.get(i - 1);
-                    ChannelAttr lastViewTag = (ChannelAttr) lastView.getTag();
+                    ChannelAttr lastViewTag = getChannelAttr(lastView);
                     View currentView = channels.get(i);
-                    ChannelAttr currentViewTag = (ChannelAttr) currentView.getTag();
+                    ChannelAttr currentViewTag = getChannelAttr(currentView);
                     currentViewTag.coordinate = lastViewTag.coordinate;
                     currentView.animate().x(currentViewTag.coordinate.x).y(currentViewTag.coordinate.y).setDuration(DURATION_TIME);
                 }
@@ -1301,7 +1303,7 @@ public class ChannelView extends ScrollView {
         private void addMyChannel(final View v) {
             //让点击的view置于最前方，避免遮挡
             v.bringToFront();
-            ChannelAttr tag = (ChannelAttr) v.getTag();
+            ChannelAttr tag = getChannelAttr(v);
             ArrayList<View> channels = channelGroups.get(tag.groupIndex);
             ArrayList<View> myChannels = channelGroups.get(0);
             View insertPositionChannel;
@@ -1310,7 +1312,7 @@ public class ChannelView extends ScrollView {
             } else {
                 insertPositionChannel = myChannels.get(myChannels.size() - 1);
             }
-            ChannelAttr insertPositionChannelTag = (ChannelAttr) insertPositionChannel.getTag();
+            ChannelAttr insertPositionChannelTag = getChannelAttr(insertPositionChannel);
             myChannels.add(myChannels.size(), v);
             channels.remove(v);
             v.setOnLongClickListener(this);
@@ -1323,7 +1325,7 @@ public class ChannelView extends ScrollView {
                     //我的频道多一行，下面的view往下移
                     viewMove(1, channelHeight);
                 } else {
-                    ChannelAttr firstMyChannelTag = (ChannelAttr) myChannels.get(0).getTag();
+                    ChannelAttr firstMyChannelTag = getChannelAttr(myChannels.get(0));
                     tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, insertPositionChannelTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
                     //我的频道多一行，下面的view往下移
                     viewMove(1, channelHeight + channelHorizontalSpacing * 2);
@@ -1334,11 +1336,11 @@ public class ChannelView extends ScrollView {
             //可自定义插入位置，暂时在尾部插入
             int insertPosition = getInsertPosition();
             if (insertPosition != myChannels.size() - 1) {
-                backOrForward(v, insertPosition, myChannels.size() - 1, myChannels, tag, (ChannelAttr) myChannels.get(insertPosition).getTag());
+                backOrForward(v, insertPosition, myChannels.size() - 1, myChannels, tag, getChannelAttr(myChannels.get(insertPosition)));
             }
             animate.x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             if (channelClickType == DELETE) {
-                styleAdapter.setEditStyle(v);
+                styleAdapter.setEditStyle(getViewHolder(v));
             }
             //该频道少一行，下面的view往上移
             if (channels.size() % channelColumn == 0) {
@@ -1360,18 +1362,18 @@ public class ChannelView extends ScrollView {
             //让点击的view置于最前方，避免遮挡
             v.bringToFront();
             if (channelClickType == DELETE) {
-                styleAdapter.setNormalStyle(v);
+                styleAdapter.setNormalStyle(getViewHolder(v));
             }
-            ChannelAttr tag = (ChannelAttr) v.getTag();
+            ChannelAttr tag = getChannelAttr(v);
             int belong = tag.channel.channelBelong;
             if (belong < 1 || belong > channelContents.size() - 1) {
                 belong = 1;
             }
             ArrayList<View> beLongChannels = channelGroups.get(belong);
             if (beLongChannels.size() == 0) {
-                tag.coordinate = new PointF(((ChannelAttr) channelTitleGroups.get(belong).getTag()).coordinate.x, ((ChannelAttr) channelTitleGroups.get(belong).getTag()).coordinate.y + channelTitleGroups.get(belong).getMeasuredHeight());
+                tag.coordinate = new PointF(getChannelAttr(channelTitleGroups.get(belong)).coordinate.x, getChannelAttr(channelTitleGroups.get(belong)).coordinate.y + channelTitleGroups.get(belong).getMeasuredHeight());
             } else {
-                ChannelAttr arriveTag = (ChannelAttr) beLongChannels.get(0).getTag();
+                ChannelAttr arriveTag = getChannelAttr(beLongChannels.get(0));
                 tag.coordinate = arriveTag.coordinate;
             }
             v.animate().x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
@@ -1381,7 +1383,7 @@ public class ChannelView extends ScrollView {
             v.setOnTouchListener(null);
             animateChangeGridLayoutHeight();
             PointF newPointF;
-            ChannelAttr finalChannelViewTag = (ChannelAttr) beLongChannels.get(beLongChannels.size() - 1).getTag();
+            ChannelAttr finalChannelViewTag = getChannelAttr(beLongChannels.get(beLongChannels.size() - 1));
             //这个地方要注意顺序
             if (channelGroups.get(0).size() % channelColumn == 0) {
                 //我的频道中少了一行，底下的所有view全都上移
@@ -1404,10 +1406,10 @@ public class ChannelView extends ScrollView {
             }
             for (int i = 1; i < beLongChannels.size(); i++) {
                 View currentView = beLongChannels.get(i);
-                ChannelAttr currentViewTag = (ChannelAttr) currentView.getTag();
+                ChannelAttr currentViewTag = getChannelAttr(currentView);
                 if (i < beLongChannels.size() - 1) {
                     View nextView = beLongChannels.get(i + 1);
-                    ChannelAttr nextViewTag = (ChannelAttr) nextView.getTag();
+                    ChannelAttr nextViewTag = getChannelAttr(nextView);
                     currentViewTag.coordinate = nextViewTag.coordinate;
                 } else {
                     currentViewTag.coordinate = newPointF;
@@ -1460,7 +1462,7 @@ public class ChannelView extends ScrollView {
         private void viewMove(int position, int offSetY) {
             for (int i = position; i < channelTitleGroups.size(); i++) {
                 View view = channelTitleGroups.get(i);
-                ChannelAttr tag = (ChannelAttr) view.getTag();
+                ChannelAttr tag = getChannelAttr(view);
                 tag.coordinate = new PointF(tag.coordinate.x, tag.coordinate.y + offSetY);
                 view.animate().x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
             }
@@ -1468,7 +1470,7 @@ public class ChannelView extends ScrollView {
                 ArrayList<View> otherChannels = channelGroups.get(i);
                 for (int j = 0; j < otherChannels.size(); j++) {
                     View view = otherChannels.get(j);
-                    ChannelAttr tag = (ChannelAttr) view.getTag();
+                    ChannelAttr tag = getChannelAttr(view);
                     tag.coordinate = new PointF(tag.coordinate.x, tag.coordinate.y + offSetY);
                     view.animate().x(tag.coordinate.x).y(tag.coordinate.y).setDuration(DURATION_TIME);
                 }
@@ -1489,12 +1491,12 @@ public class ChannelView extends ScrollView {
             dragX = moveX;
             dragY = moveY;
             ArrayList<View> myChannels = channelGroups.get(0);
-            ChannelAttr vTag = (ChannelAttr) v.getTag();
+            ChannelAttr vTag = getChannelAttr(v);
             int vIndex = myChannels.indexOf(v);
             for (int i = 0; i < myChannels.size(); i++) {
                 if (i >= channelFixedCount && i != vIndex) {
                     View iChannel = myChannels.get(i);
-                    ChannelAttr iChannelTag = (ChannelAttr) iChannel.getTag();
+                    ChannelAttr iChannelTag = getChannelAttr(iChannel);
                     int x1 = (int) iChannelTag.coordinate.x;
                     int y1 = (int) iChannelTag.coordinate.y;
                     int sqrt = (int) Math.sqrt((v.getX() - x1) * (v.getX() - x1) + (v.getY() - y1) * (v.getY() - y1));
@@ -1514,8 +1516,8 @@ public class ChannelView extends ScrollView {
             if (i < vIndex) {
                 for (int j = i; j < vIndex; j++) {
                     View view = myChannels.get(j);
-                    ChannelAttr viewTag = (ChannelAttr) view.getTag();
-                    ChannelAttr nextGridViewAttr = ((ChannelAttr) myChannels.get(j + 1).getTag());
+                    ChannelAttr viewTag = getChannelAttr(view);
+                    ChannelAttr nextGridViewAttr = getChannelAttr(myChannels.get(j + 1));
                     viewTag.coordinate = nextGridViewAttr.coordinate;
                     view.animate().x(viewTag.coordinate.x).setDuration(DURATION_TIME).start();
                     view.animate().y(viewTag.coordinate.y).setDuration(DURATION_TIME).start();
@@ -1523,8 +1525,8 @@ public class ChannelView extends ScrollView {
             } else {
                 for (int j = i; j > vIndex; j--) {
                     View view = myChannels.get(j);
-                    ChannelAttr viewTag = (ChannelAttr) view.getTag();
-                    ChannelAttr preGridViewAttr = ((ChannelAttr) myChannels.get(j - 1).getTag());
+                    ChannelAttr viewTag = getChannelAttr(view);
+                    ChannelAttr preGridViewAttr = getChannelAttr(myChannels.get(j - 1));
                     viewTag.coordinate = preGridViewAttr.coordinate;
                     view.animate().x(viewTag.coordinate.x).setDuration(DURATION_TIME).start();
                     view.animate().y(viewTag.coordinate.y).setDuration(DURATION_TIME).start();
@@ -1554,7 +1556,7 @@ public class ChannelView extends ScrollView {
                 isEditState = false;
                 for (int i = 0; i < views.size(); i++) {
                     if (i >= channelFixedCount) {
-                        styleAdapter.setNormalStyle(views.get(i));
+                        styleAdapter.setNormalStyle(getViewHolder(views.get(i)));
                     }
                 }
             }
@@ -1564,6 +1566,42 @@ public class ChannelView extends ScrollView {
         protected void onDetachedFromWindow() {
             super.onDetachedFromWindow();
             handler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    private ChannelAttr getChannelAttr(View view) {
+        return ((ChannelLayoutParams) view.getLayoutParams()).mChannelAttr;
+    }
+
+    private ViewHolder getViewHolder(View view) {
+        return ((ChannelLayoutParams) view.getLayoutParams()).mViewHolder;
+    }
+
+    public static class ChannelLayoutParams extends GridLayout.LayoutParams {
+        ViewHolder mViewHolder;
+        ChannelAttr mChannelAttr;
+
+        public ChannelLayoutParams(GridLayout.Spec rowSpec, GridLayout.Spec columnSpec) {
+            super(rowSpec, columnSpec);
+        }
+
+        public ChannelLayoutParams() {
+        }
+
+        public ChannelLayoutParams(ViewGroup.LayoutParams params) {
+            super(params);
+        }
+
+        public ChannelLayoutParams(MarginLayoutParams params) {
+            super(params);
+        }
+
+        public ChannelLayoutParams(GridLayout.LayoutParams source) {
+            super(source);
+        }
+
+        public ChannelLayoutParams(Context context, AttributeSet attrs) {
+            super(context, attrs);
         }
     }
 }

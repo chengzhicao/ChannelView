@@ -1,25 +1,25 @@
 package com.cheng.channel.adapter;
 
-import android.view.View;
+import com.cheng.channel.ViewHolder;
 
-public abstract class BaseStyleAdapter implements StyleAdapter {
+public abstract class BaseStyleAdapter<VH extends ViewHolder> implements StyleAdapter<VH> {
     @Override
-    public void setNormalStyle(View channelView) {
+    public void setNormalStyle(VH viewHolder) {
 
     }
 
     @Override
-    public void setFixedStyle(View channelView) {
+    public void setFixedStyle(VH viewHolder) {
 
     }
 
     @Override
-    public void setEditStyle(View channelView) {
+    public void setEditStyle(VH viewHolder) {
 
     }
 
     @Override
-    public void setFocusedStyle(View channelView) {
+    public void setFocusedStyle(VH viewHolder) {
 
     }
 }
