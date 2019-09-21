@@ -720,7 +720,13 @@ public class ChannelView extends ScrollView {
         }
         isInflateData = true;
         if (styleAdapter == null) {
-            styleAdapter = defaultStyleAdapter = new DefaultStyleAdapter();
+            styleAdapter = defaultStyleAdapter = new DefaultStyleAdapter() {
+
+                @Override
+                public LinkedHashMap<String, List<Channel>> getChannelData() {
+                    return null;
+                }
+            };
         }
         LinkedHashMap<String, List<Channel>> channelData = styleAdapter.getChannelData();
         if (channelData != null) {
