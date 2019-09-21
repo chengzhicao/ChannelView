@@ -7,19 +7,23 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.cheng.channel.Channel;
 import com.cheng.channel.ChannelView;
+import com.cheng.channel.ViewHolder;
 import com.cheng.channel.adapter.BaseStyleAdapter;
 import com.cheng.channel.adapter.ChannelListenerAdapter;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class CustomChannelActivity extends AppCompatActivity {
     private String TAG = "CustomChannelActivity:";
     private ChannelView channelView;
+    private LinkedHashMap<String, List<Channel>> data = new LinkedHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,49 +78,14 @@ public class CustomChannelActivity extends AppCompatActivity {
             recommendChannelList3.add(channel);
         }
 
+        data.put("我的频道", myChannelList);
+        data.put("推荐频道", recommendChannelList1);
+        data.put("国内", recommendChannelList2);
+        data.put("国外", recommendChannelList3);
+
         channelView.setChannelFixedCount(3);
         channelView.setInsertRecommendPosition(6);
-        channelView.addPlate("我的频道", myChannelList);
-        channelView.addPlate("推荐频道", recommendChannelList1);
-        channelView.addPlate("国内", recommendChannelList2);
-        channelView.addPlate("国外", recommendChannelList3);
-//        channelView.setStyleAdapter(new BaseStyleAdapter() {
-//            @Override
-//            public View createStyleView(ViewGroup parent, String channelName) {
-//                View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_custom_channel, null);
-//                TextView tv = inflate.findViewById(R.id.tv_channel);
-//                tv.setText(channelName);
-//                return inflate;
-//            }
-//
-//            @Override
-//            public void setNormalStyle(View channelView) {
-//                TextView textView = channelView.findViewById(R.id.tv_channel);
-//                textView.setBackgroundResource(R.drawable.bg_channel_custom_normal);
-//                channelView.findViewById(R.id.iv_delete).setVisibility(View.INVISIBLE);
-//            }
-//
-//            @Override
-//            public void setFixedStyle(View channelView) {
-//                TextView textView = channelView.findViewById(R.id.tv_channel);
-//                textView.setTextColor(Color.parseColor("#1E87FF"));
-//                textView.setBackgroundResource(R.drawable.bg_channel_custom_fixed);
-//            }
-//
-//            @Override
-//            public void setEditStyle(View channelView) {
-//                TextView textView = channelView.findViewById(R.id.tv_channel);
-//                textView.setBackgroundResource(R.drawable.bg_channel_custom_edit);
-//                channelView.findViewById(R.id.iv_delete).setVisibility(View.VISIBLE);
-//            }
-//
-//            @Override
-//            public void setFocusedStyle(View channelView) {
-//                TextView textView = channelView.findViewById(R.id.tv_channel);
-//                textView.setBackgroundResource(R.drawable.bg_channel_custom_focused);
-//            }
-//        });
-        channelView.inflateData();
+        channelView.setStyleAdapter(new MyAdapter());
         channelView.setOnChannelListener(new ChannelListenerAdapter() {
             @Override
             public void channelItemClick(int position, Channel channel) {
@@ -131,6 +100,7 @@ public class CustomChannelActivity extends AppCompatActivity {
             @Override
             public void channelEditFinish(List<Channel> channelList) {
                 Log.i(TAG, channelList.toString());
+                Log.i(TAG, channelView.isChange() + "");
                 Log.i(TAG, channelView.getOtherChannel().toString());
             }
 
@@ -139,5 +109,55 @@ public class CustomChannelActivity extends AppCompatActivity {
                 Log.i(TAG, "channelEditStart");
             }
         });
+    }
+
+    class MyAdapter extends BaseStyleAdapter<MyAdapter.MyViewHolder> {
+
+        @Override
+        public MyViewHolder createStyleView(ViewGroup parent, String channelName) {
+            View inflate = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_custom_channel, null);
+            MyViewHolder customViewHolder = new MyViewHolder(inflate);
+            customViewHolder.tv.setText(channelName);
+            return customViewHolder;
+        }
+
+        @Override
+        public LinkedHashMap<String, List<Channel>> getChannelData() {
+            return data;
+        }
+
+        @Override
+        public void setNormalStyle(MyViewHolder viewHolder) {
+            viewHolder.tv.setBackgroundResource(R.drawable.bg_channel_custom_normal);
+            viewHolder.iv.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public void setFixedStyle(MyViewHolder viewHolder) {
+            viewHolder.tv.setTextColor(Color.parseColor("#1E87FF"));
+            viewHolder.tv.setBackgroundResource(R.drawable.bg_channel_custom_fixed);
+        }
+
+        @Override
+        public void setEditStyle(MyViewHolder viewHolder) {
+            viewHolder.tv.setBackgroundResource(R.drawable.bg_channel_custom_edit);
+            viewHolder.iv.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void setFocusedStyle(MyViewHolder viewHolder) {
+            viewHolder.tv.setBackgroundResource(R.drawable.bg_channel_custom_focused);
+        }
+
+        class MyViewHolder extends ViewHolder {
+            TextView tv;
+            ImageView iv;
+
+            public MyViewHolder(View itemView) {
+                super(itemView);
+                tv = itemView.findViewById(R.id.tv_channel);
+                iv = itemView.findViewById(R.id.iv_delete);
+            }
+        }
     }
 }

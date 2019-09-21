@@ -10,6 +10,9 @@ import android.widget.TextView;
 
 import com.cheng.channel.adapter.BaseStyleAdapter;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+
 /**
  * 默认的频道适配样式，如果没有设置setAdapter，默认使用这个
  */
@@ -21,6 +24,11 @@ public class DefaultStyleAdapter extends BaseStyleAdapter<DefaultStyleAdapter.De
         textView.setGravity(Gravity.CENTER);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, channelTextSize);
         return new DefaultViewHolder(textView);
+    }
+
+    @Override
+    public LinkedHashMap<String, List<Channel>> getChannelData() {
+        return null;
     }
 
     @Override

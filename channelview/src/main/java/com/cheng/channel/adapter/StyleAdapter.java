@@ -2,7 +2,11 @@ package com.cheng.channel.adapter;
 
 import android.view.ViewGroup;
 
+import com.cheng.channel.Channel;
 import com.cheng.channel.ViewHolder;
+
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * 频道适配器，用于自定义频道样式
@@ -16,6 +20,13 @@ public interface StyleAdapter<VH extends ViewHolder> {
      * @return
      */
     VH createStyleView(ViewGroup parent, String channelName);
+
+    /**
+     * 获取频道数据
+     *
+     * @return
+     */
+    LinkedHashMap<String, List<Channel>> getChannelData();
 
     /**
      * 设置正常状态下频道样式

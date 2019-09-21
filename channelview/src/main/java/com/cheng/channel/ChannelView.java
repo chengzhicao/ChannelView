@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ChannelView extends ScrollView {
     private Context mContext;
@@ -266,7 +267,10 @@ public class ChannelView extends ScrollView {
 
     /**
      * 添加频道板块
+     *
+     * @see StyleAdapter#getChannelData()
      */
+    @Deprecated
     public void addPlate(String plateName, List<Channel> channelList) {
         if (channelList != null && channelList.size() > 0) {
             if (channelContents.size() != 0) {
@@ -286,6 +290,8 @@ public class ChannelView extends ScrollView {
 
     /**
      * 设置频道正常状态下背景
+     *
+     * @see StyleAdapter#setNormalStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelNormalBackground(@DrawableRes int channelNormalBackground) {
@@ -298,6 +304,8 @@ public class ChannelView extends ScrollView {
 
     /**
      * 设置频道编辑状态下背景
+     *
+     * @see StyleAdapter#setEditStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelEditBackground(@DrawableRes int channelEditBackground) {
@@ -308,6 +316,8 @@ public class ChannelView extends ScrollView {
 
     /**
      * 设置频道编辑且点击状态下背景
+     *
+     * @see StyleAdapter#setFocusedStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelFocusedBackground(@DrawableRes int channelFocusedBackground) {
@@ -320,6 +330,7 @@ public class ChannelView extends ScrollView {
      * 设置固定频道的背景
      *
      * @param channelFixedBackground
+     * @see StyleAdapter#setFixedStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelFixedBackground(@DrawableRes int channelFixedBackground) {
@@ -334,6 +345,7 @@ public class ChannelView extends ScrollView {
      * 设置固定频道的颜色
      *
      * @param channelFixedTextColor
+     * @see StyleAdapter#setFixedStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelFixedTextColor(@ColorInt int channelFixedTextColor) {
@@ -348,6 +360,7 @@ public class ChannelView extends ScrollView {
      * 设置频道字体颜色
      *
      * @param channelNormalTextColor
+     * @see StyleAdapter#setNormalStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelNormalTextColor(@ColorInt int channelNormalTextColor) {
@@ -362,6 +375,7 @@ public class ChannelView extends ScrollView {
      * 设置编辑且点击状态下频道字体颜色
      *
      * @param channelFocusedTextColor
+     * @see StyleAdapter#setFocusedStyle(ViewHolder)
      */
     @Deprecated
     public void setChannelFocusedTextColor(@ColorInt int channelFocusedTextColor) {
@@ -374,6 +388,7 @@ public class ChannelView extends ScrollView {
      * 设置频道字体大小
      *
      * @param channelTextSize
+     * @see StyleAdapter#createStyleView(ViewGroup, String)
      */
     @Deprecated
     public void setChannelTextSizeRes(@DimenRes int channelTextSize) {
@@ -394,6 +409,7 @@ public class ChannelView extends ScrollView {
      * 设置频道字体大小
      *
      * @param channelTextSize
+     * @see StyleAdapter#createStyleView(ViewGroup, String)
      */
     @Deprecated
     public void setChannelTextSize(int unit, int channelTextSize) {
@@ -687,15 +703,36 @@ public class ChannelView extends ScrollView {
     }
 
     /**
-     * 添加完频道模块之后，进行填充数据
+     * 是否已填充数据
      */
+    private boolean isInflateData;
+
+    /**
+     * 添加完频道模块之后，进行填充数据
+     *
+     * @see StyleAdapter#getChannelData()
+     */
+    @Deprecated
     public void inflateData() {
+        //只填充一次数据
+        if (isInflateData) {
+            return;
+        }
+        isInflateData = true;
+        if (styleAdapter == null) {
+            styleAdapter = defaultStyleAdapter = new DefaultStyleAdapter();
+        }
+        LinkedHashMap<String, List<Channel>> channelData = styleAdapter.getChannelData();
+        if (channelData != null) {
+            channelContents.clear();
+            Set<String> keySet = channelData.keySet();
+            for (String key : keySet) {
+                addPlate(key, channelData.get(key));
+            }
+        }
         //如果只有一组频道，默认再加上一组
         if (channelContents.size() == 1) {
             channelContents.put("推荐频道", null);
-        }
-        if (styleAdapter == null) {
-            styleAdapter = defaultStyleAdapter = new DefaultStyleAdapter();
         }
         if (checkDefaultAdapter()) {
             defaultStyleAdapter = (DefaultStyleAdapter) styleAdapter;
@@ -808,11 +845,20 @@ public class ChannelView extends ScrollView {
         void channelEditStateItemClick(int position, Channel channel);
     }
 
+    /**
+     * @param onChannelListener
+     * @see ChannelView#setOnChannelListener(OnChannelListener)
+     */
     @Deprecated
     public void setOnChannelItemClickListener(OnChannelListener onChannelListener) {
         this.onChannelListener = onChannelListener;
     }
 
+    /**
+     * 状态或点击监听
+     *
+     * @param onChannelListener
+     */
     public void setOnChannelListener(OnChannelListener onChannelListener) {
         this.onChannelListener = onChannelListener;
     }
@@ -829,7 +875,11 @@ public class ChannelView extends ScrollView {
     private StyleAdapter styleAdapter;
 
     public void setStyleAdapter(StyleAdapter styleAdapter) {
+        if (isInflateData) {
+            return;
+        }
         this.styleAdapter = styleAdapter;
+        inflateData();
     }
 
     private class ChannelLayout extends GridLayout implements OnLongClickListener, OnClickListener, OnTouchListener {
