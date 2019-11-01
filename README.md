@@ -1,7 +1,7 @@
 # 介绍
 >一款频道选择器，可以进行频道的拖动、排序、增删，动态的改变高度，精简流畅
 
-![](https://raw.githubusercontent.com/chengzhicao/doc/master/Animation2.gif)
+![](https://upload-images.jianshu.io/upload_images/6753190-97bcb4fb8a1c1f2a.gif?imageMogr2/auto-orient/strip)
 ![](https://upload-images.jianshu.io/upload_images/6753190-9ef8bb620590ffad.gif?imageMogr2/auto-orient/strip)
 
 # 使用[![](https://jitpack.io/v/chengzhicao/ChannelView.svg)](https://jitpack.io/#chengzhicao/ChannelView)
