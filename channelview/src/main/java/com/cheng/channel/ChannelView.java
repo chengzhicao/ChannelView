@@ -991,13 +991,13 @@ public class ChannelView extends ScrollView {
                         allChannelTitleHeight += childAt.getMeasuredHeight();
                     } else if (getChannelAttr(childAt).type == ChannelAttr.CHANNEL) {
                         //计算每个频道的宽高
-                        channelWidth = (width - channelVerticalSpacing * (channelColumn * 2 - 2) - channelPadding * 2) / channelColumn;
+                        channelWidth = (width - channelVerticalSpacing * (channelColumn - 1) - channelPadding * 2) / channelColumn;
                         childAt.measure(MeasureSpec.makeMeasureSpec(channelWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(channelHeight, MeasureSpec.EXACTLY));
                     }
                 }
                 for (int groupChannelColumn : groupChannelColumns) {
                     if (groupChannelColumn > 0) {
-                        height += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * channelHorizontalSpacing;
+                        height += channelHeight * groupChannelColumn + (groupChannelColumn - 1) * channelHorizontalSpacing;
                     }
                 }
                 allChannelGroupsHeight = height;
@@ -1130,7 +1130,7 @@ public class ChannelView extends ScrollView {
                         channelView.setOnClickListener(this);
                         //设置每个频道的间距
                         ChannelLayoutParams params = new ChannelLayoutParams();
-                        int leftMargin = channelVerticalSpacing, topMargin = channelHorizontalSpacing, rightMargin = channelVerticalSpacing, bottomMargin = channelHorizontalSpacing;
+                        int leftMargin = channelVerticalSpacing / 2, topMargin = channelHorizontalSpacing / 2, rightMargin = channelVerticalSpacing / 2, bottomMargin = channelHorizontalSpacing / 2;
                         if (i % channelColumn == 0) {
                             leftMargin = channelPadding;
                         }
@@ -1382,12 +1382,12 @@ public class ChannelView extends ScrollView {
                     viewMove(1, channelHeight);
                 } else {
                     ChannelAttr firstMyChannelTag = getChannelAttr(myChannels.get(0));
-                    tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, insertPositionChannelTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
+                    tag.coordinate = new PointF(firstMyChannelTag.coordinate.x, insertPositionChannelTag.coordinate.y + channelHeight + channelHorizontalSpacing);
                     //我的频道多一行，下面的view往下移
-                    viewMove(1, channelHeight + channelHorizontalSpacing * 2);
+                    viewMove(1, channelHeight + channelHorizontalSpacing);
                 }
             } else {
-                tag.coordinate = new PointF(insertPositionChannelTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, insertPositionChannelTag.coordinate.y);
+                tag.coordinate = new PointF(insertPositionChannelTag.coordinate.x + channelWidth + channelVerticalSpacing, insertPositionChannelTag.coordinate.y);
             }
             //可自定义插入位置，暂时在尾部插入
             int insertPosition = getInsertPosition();
@@ -1403,7 +1403,7 @@ public class ChannelView extends ScrollView {
                 if (channels.size() == 0) {
                     viewMove(tag.groupIndex + 1, -channelHeight);
                 } else {
-                    viewMove(tag.groupIndex + 1, -channelHeight - channelHorizontalSpacing * 2);
+                    viewMove(tag.groupIndex + 1, -channelHeight - channelHorizontalSpacing);
                 }
             }
             tag.groupIndex = 0;
@@ -1446,7 +1446,7 @@ public class ChannelView extends ScrollView {
                 if (channelGroups.get(0).size() == 0) {
                     viewMove(1, -channelHeight);
                 } else {
-                    viewMove(1, -channelHeight - channelHorizontalSpacing * 2);
+                    viewMove(1, -channelHeight - channelHorizontalSpacing);
                 }
             }
             if (beLongChannels.size() % channelColumn == 1) {
@@ -1454,11 +1454,11 @@ public class ChannelView extends ScrollView {
                 if (beLongChannels.size() == 1) {
                     viewMove(belong + 1, channelHeight);
                 } else {
-                    viewMove(belong + 1, channelHeight + channelHorizontalSpacing * 2);
+                    viewMove(belong + 1, channelHeight + channelHorizontalSpacing);
                 }
-                newPointF = new PointF(tag.coordinate.x, finalChannelViewTag.coordinate.y + channelHeight + channelHorizontalSpacing * 2);
+                newPointF = new PointF(tag.coordinate.x, finalChannelViewTag.coordinate.y + channelHeight + channelHorizontalSpacing);
             } else {
-                newPointF = new PointF(finalChannelViewTag.coordinate.x + channelWidth + channelVerticalSpacing * 2, finalChannelViewTag.coordinate.y);
+                newPointF = new PointF(finalChannelViewTag.coordinate.x + channelWidth + channelVerticalSpacing, finalChannelViewTag.coordinate.y);
             }
             for (int i = 1; i < beLongChannels.size(); i++) {
                 View currentView = beLongChannels.get(i);
@@ -1486,7 +1486,7 @@ public class ChannelView extends ScrollView {
             }
             for (int groupChannelColumn : groupChannelColumns) {
                 if (groupChannelColumn > 0) {
-                    newAllChannelGroupsHeight += channelHeight * groupChannelColumn + (groupChannelColumn * 2 - 2) * channelHorizontalSpacing;
+                    newAllChannelGroupsHeight += channelHeight * groupChannelColumn + (groupChannelColumn - 1) * channelHorizontalSpacing;
                 }
             }
             int changeHeight = newAllChannelGroupsHeight - allChannelGroupsHeight;
