@@ -21,7 +21,7 @@ Add the dependency
 
 ```
 dependencies {
-        implementation 'com.github.chengzhicao:ChannelView:v1.1.0'
+        implementation 'com.github.chengzhicao:ChannelView:v1.1.1'
 }
 ```
 
