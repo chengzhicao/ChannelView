@@ -27,11 +27,8 @@ dependencies {
 
 **建议将compileSdkVersion改为28，低于28会出现编译问题**
 
-# v1.1.0更新说明（Latest release）
-> 1. 优化动画。
-> 2. 增加编辑状态下频道点击事件监听。
-> 3. 可修改添加频道时的插入位置，如果不设置，默认在尾部插入。
-> 4. 修改自定义样式和填充数据方式
+# v1.1.1更新说明（Latest release）
+> 1. 修复channelHorizontalSpacing和channelVerticalSpacing不准确问题
 
 **&emsp;&emsp;注意1：1.1.0版本以后原有自定义样式和填充数据方法已过时，但不影响使用，所以存在两种填充数据和自定义样式的方法，一种是使用以前版本的已过时方法和属性，另一种是最新的适配器方式。其中已过时的inflateData()方法只有填充数据作用，而适配器方式同时有填充数据和自定义样式的作用，这两个方式谁先调用谁先生效，所以不建议同时存在，已过时的自定义样式方法和属性只有在使用DefaultStyleAdapter或者使用inflateData()填充数据时才会生效。**
 
@@ -349,6 +346,12 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 ```
 
 # 以往更新
+
+## v1.1.0
+> 1. 优化动画。
+> 2. 增加编辑状态下频道点击事件监听。
+> 3. 可修改添加频道时的插入位置，如果不设置，默认在尾部插入。
+> 4. 修改自定义样式和填充数据方式
 
 ## v1.0.9
 > 1. 禁止多点触摸
