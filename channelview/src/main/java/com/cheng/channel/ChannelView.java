@@ -272,20 +272,21 @@ public class ChannelView extends ScrollView {
      */
     @Deprecated
     public void addPlate(String plateName, List<Channel> channelList) {
-        if (channelList != null && channelList.size() > 0) {
-            if (channelContents.size() != 0) {
-                for (Channel channel : channelList) {
-                    channel.channelBelong = channelContents.size();
-                }
-            } else {
-                myChannelCode = new int[channelList.size()];
-                for (int i = 0; i < channelList.size(); i++) {
-                    channelList.get(i).code = i;
-                    myChannelCode[i] = i;
-                }
-            }
-            channelContents.put(plateName, channelList);
+        if (channelList == null) {
+            channelList = new ArrayList<>();
         }
+        if (channelContents.size() == 0) {
+            myChannelCode = new int[channelList.size()];
+            for (int i = 0; i < channelList.size(); i++) {
+                channelList.get(i).code = i;
+                myChannelCode[i] = i;
+            }
+        } else {
+            for (Channel channel : channelList) {
+                channel.channelBelong = channelContents.size();
+            }
+        }
+        channelContents.put(plateName, channelList);
     }
 
     /**
@@ -1040,9 +1041,6 @@ public class ChannelView extends ScrollView {
                     List<Channel> channelContent = channelContents.get(aKeySet);
                     if (j == 0 && channelFixedCount > channelContent.size()) {
                         throw new RuntimeException("固定频道数量不能大于已选频道数量");
-                    }
-                    if (channelContent == null) {
-                        channelContent = new ArrayList<>();
                     }
                     groupChannelColumns[j] = channelContent.size() % channelColumn == 0 ? channelContent.size() / channelColumn : channelContent.size() / channelColumn + 1;
                     if (j == 0) {

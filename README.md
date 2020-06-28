@@ -1,5 +1,5 @@
 # 介绍
->一款频道选择器，可以进行频道的拖动、排序、增删，动态的改变高度，精简流畅
+>一款频道选择器，可以进行频道的拖动、排序、增删，可高度自定义样式
 
 ![](https://upload-images.jianshu.io/upload_images/6753190-97bcb4fb8a1c1f2a.gif?imageMogr2/auto-orient/strip)
 ![](https://upload-images.jianshu.io/upload_images/6753190-9ef8bb620590ffad.gif?imageMogr2/auto-orient/strip)
@@ -21,14 +21,14 @@ Add the dependency
 
 ```
 dependencies {
-        implementation 'com.github.chengzhicao:ChannelView:v1.1.1'
+        implementation 'com.github.chengzhicao:ChannelView:v1.1.2'
 }
 ```
 
 **建议将compileSdkVersion改为28，低于28会出现编译问题**
 
-# v1.1.1更新说明（Latest release）
-> 1. 修复channelHorizontalSpacing和channelVerticalSpacing不准确问题
+# v1.1.2更新说明（Latest release）
+> 1. 允许我的频道或其他频道初始化时只有标题没有数据（只需``String[] myChannel = {}``或者``data.put("我的频道", null)``即可）
 
 **&emsp;&emsp;注意1：1.1.0版本以后原有自定义样式和填充数据方法已过时，但不影响使用，所以存在两种填充数据和自定义样式的方法，一种是使用以前版本的已过时方法和属性，另一种是最新的适配器方式。其中已过时的inflateData()方法只有填充数据作用，而适配器方式同时有填充数据和自定义样式的作用，这两个方式谁先调用谁先生效，所以不建议同时存在，已过时的自定义样式方法和属性只有在使用DefaultStyleAdapter或者使用inflateData()填充数据时才会生效。**
 
@@ -347,6 +347,9 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 
 # 以往更新
 
+## v1.1.1
+> 1. 修复channelHorizontalSpacing和channelVerticalSpacing不准确问题
+
 ## v1.1.0
 > 1. 优化动画。
 > 2. 增加编辑状态下频道点击事件监听。
@@ -373,7 +376,3 @@ public class ChannelViewActivity extends AppCompatActivity implements ChannelVie
 > 5. 简化设置固定频道方法
 > 6. 自定义频道样式
 > 7. 判断是否编辑过频道
-
-# 项目详细解读
-
-<https://www.jianshu.com/p/53af72e8a4ba>
